@@ -130,13 +130,13 @@ function fetchWalterCity($city) {
             'city' => $city,
             'verkocht_vorig_kwartaal' => intval(str_replace('.', '', $nums[0])),
             'verkocht_huidig_kwartaal' => intval(str_replace('.', '', $nums[1])),
-            'gem_transactieprijs_vorig' => intval(str_replace('.', '', $nums[2])) * 1000,
-            'gem_transactieprijs_huidig' => intval(str_replace('.', '', $nums[3])) * 1000,
+            'gem_transactieprijs_vorig' => intval(str_replace('.', '', $nums[2])),
+            'gem_transactieprijs_huidig' => intval(str_replace('.', '', $nums[3])),
             'gem_m2_prijs_vorig' => intval(str_replace('.', '', $nums[4])),
             'gem_m2_prijs_huidig' => intval(str_replace('.', '', $nums[5])),
-            'gem_vraagprijs_vorig' => intval(str_replace('.', '', $nums[6])) * 1000,
-            'gem_vraagprijs_huidig' => intval(str_replace('.', '', $nums[7])) * 1000,
-            'woz_verschil' => isset($nums[8]) ? intval(str_replace('.', '', $nums[8])) * 1000 : null,
+            'gem_vraagprijs_vorig' => intval(str_replace('.', '', $nums[6])),
+            'gem_vraagprijs_huidig' => intval(str_replace('.', '', $nums[7])),
+            'woz_verschil' => isset($nums[8]) ? intval(str_replace('.', '', $nums[8])) : null,
         ]);
     }
 
