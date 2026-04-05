@@ -903,13 +903,6 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
       </div>
     </div>
 
-    <div class="toggle-row" style="margin-bottom:1rem" id="extras">
-      <button class="toggle-btn" data-extra="vloerverwarming">Vloerverwarming</button>
-      <button class="toggle-btn" data-extra="balkon">Balkon</button>
-      <button class="toggle-btn" data-extra="kelder">Kelder</button>
-      <button class="toggle-btn" data-extra="zolder">Bewoonbare zolder</button>
-    </div>
-
     <div class="section-label" style="margin-top:0.25rem">Stap 4 — Bijzonderheden <span style="font-size:0.6rem;color:var(--accent);font-weight:400;text-transform:none;letter-spacing:0">(minimaal 3 selecteren)</span></div>
     <div class="toggle-row" id="toggles">
       <button class="toggle-btn" data-key="zwembad">Zwembad</button>
@@ -924,6 +917,12 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
       <button class="toggle-btn" data-key="asbest">Asbest</button>
       <button class="toggle-btn" data-key="fundering">Funderingsproblemen</button>
       <button class="toggle-btn" data-key="geen">Geen van bovenstaande</button>
+    </div>
+    <div class="toggle-row" style="margin-bottom:1rem" id="extras">
+      <button class="toggle-btn" data-extra="vloerverwarming">Vloerverwarming</button>
+      <button class="toggle-btn" data-extra="balkon">Balkon</button>
+      <button class="toggle-btn" data-extra="kelder">Kelder</button>
+      <button class="toggle-btn" data-extra="zolder">Bewoonbare zolder</button>
     </div>
     <div id="validation-msg" style="display:none;color:var(--accent);font-size:0.8rem;margin-top:0.5rem;font-weight:600"></div>
 
@@ -1842,7 +1841,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.9.1</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.9.2</footer>
 
 </body>
 </html>
