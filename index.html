@@ -799,6 +799,7 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
         <label>Algemene staat</label>
         <select id="onderhoud" required>
           <option value="" disabled selected>Selecteer...</option>
+          <option value="onbekend">Onbekend</option>
           <option value="uitstekend">Uitstekend — volledig gerenoveerd</option>
           <option value="goed">Goed — normaal onderhouden</option>
           <option value="redelijk">Redelijk — klein achterstallig onderhoud</option>
@@ -810,6 +811,7 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
         <label>Verwarming</label>
         <select id="cv-staat">
           <option value="" disabled selected>Selecteer...</option>
+          <option value="onbekend">Onbekend</option>
           <optgroup label="Warmtepomp">
             <option value="wp-nieuw">Warmtepomp nieuw (0–5 jr)</option>
             <option value="wp-goed">Warmtepomp goed (5–10 jr)</option>
@@ -837,6 +839,7 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
         <label>Keuken</label>
         <select id="keuken-staat">
           <option value="" disabled selected>Selecteer...</option>
+          <option value="onbekend">Onbekend</option>
           <option value="nieuw">Nieuw (0–5 jr)</option>
           <option value="goed">Goed (5–15 jr)</option>
           <option value="gedateerd">Gedateerd (15+ jr)</option>
@@ -847,6 +850,7 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
         <label>Badkamer</label>
         <select id="badkamer-staat">
           <option value="" disabled selected>Selecteer...</option>
+          <option value="onbekend">Onbekend</option>
           <option value="nieuw">Nieuw (0–5 jr)</option>
           <option value="goed">Goed (5–15 jr)</option>
           <option value="gedateerd">Gedateerd (15+ jr)</option>
@@ -857,6 +861,7 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
         <label>Parkeren</label>
         <select id="parkeren">
           <option value="" disabled selected>Selecteer...</option>
+          <option value="onbekend">Onbekend</option>
           <option value="garage">Garage</option>
           <option value="carport">Carport</option>
           <option value="oprit">Eigen oprit</option>
@@ -872,6 +877,7 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
         <label>Tuin</label>
         <select id="tuin">
           <option value="" disabled selected>Selecteer...</option>
+          <option value="onbekend">Onbekend</option>
           <option value="voor-achter">Voor- en achtertuin</option>
           <option value="achter">Achtertuin</option>
           <option value="patio">Patio / binnentuin</option>
@@ -883,6 +889,7 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
         <label>Tuin op</label>
         <select id="tuin-orientatie">
           <option value="" disabled selected>Selecteer...</option>
+          <option value="onbekend">Onbekend</option>
           <option value="zuid">Zuiden</option>
           <option value="zuidwest">Zuidwesten</option>
           <option value="west">Westen</option>
@@ -896,23 +903,11 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
       </div>
     </div>
 
-    <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1rem">
-      <label style="cursor:pointer;display:flex;align-items:center;gap:0.4rem">
-        <input type="checkbox" id="vloerverwarming" style="width:auto;accent-color:var(--accent)">
-        <span style="font-size:0.8rem;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0">Vloerverwarming</span>
-      </label>
-      <label style="cursor:pointer;display:flex;align-items:center;gap:0.4rem">
-        <input type="checkbox" id="balkon" style="width:auto;accent-color:var(--accent)">
-        <span style="font-size:0.8rem;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0">Balkon</span>
-      </label>
-      <label style="cursor:pointer;display:flex;align-items:center;gap:0.4rem">
-        <input type="checkbox" id="kelder" style="width:auto;accent-color:var(--accent)">
-        <span style="font-size:0.8rem;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0">Kelder</span>
-      </label>
-      <label style="cursor:pointer;display:flex;align-items:center;gap:0.4rem">
-        <input type="checkbox" id="zolder" style="width:auto;accent-color:var(--accent)">
-        <span style="font-size:0.8rem;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0">Bewoonbare zolder</span>
-      </label>
+    <div class="toggle-row" style="margin-bottom:1rem" id="extras">
+      <button class="toggle-btn" data-extra="vloerverwarming">Vloerverwarming</button>
+      <button class="toggle-btn" data-extra="balkon">Balkon</button>
+      <button class="toggle-btn" data-extra="kelder">Kelder</button>
+      <button class="toggle-btn" data-extra="zolder">Bewoonbare zolder</button>
     </div>
 
     <div class="section-label" style="margin-top:0.25rem">Stap 4 — Bijzonderheden <span style="font-size:0.6rem;color:var(--accent);font-weight:400;text-transform:none;letter-spacing:0">(minimaal 3 selecteren)</span></div>
@@ -1049,13 +1044,21 @@ const state = {
 
 const apiLog = [];
 const activeFeatures = new Set();
+const activeExtras = new Set();
 
 // ── Toggle buttons ────────────────────────────────────
-document.querySelectorAll('.toggle-btn').forEach(btn => {
+document.querySelectorAll('.toggle-btn[data-key]').forEach(btn => {
   btn.addEventListener('click', () => {
     const k = btn.dataset.key;
     if (activeFeatures.has(k)) { activeFeatures.delete(k); btn.classList.remove('active'); }
     else { activeFeatures.add(k); btn.classList.add('active'); }
+  });
+});
+document.querySelectorAll('.toggle-btn[data-extra]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const k = btn.dataset.extra;
+    if (activeExtras.has(k)) { activeExtras.delete(k); btn.classList.remove('active'); }
+    else { activeExtras.add(k); btn.classList.add('active'); }
   });
 });
 
@@ -1180,11 +1183,8 @@ async function selectAddress(id, label) {
   document.getElementById('tuin').selectedIndex = 0;
   document.getElementById('tuin-orientatie').selectedIndex = 0;
   document.getElementById('aantal-badkamers').value = '';
-  document.getElementById('vloerverwarming').checked = false;
-  document.getElementById('balkon').checked = false;
-  document.getElementById('kelder').checked = false;
-  document.getElementById('zolder').checked = false;
   activeFeatures.clear();
+  activeExtras.clear();
   document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
 
   // Fill address fields
@@ -1393,10 +1393,10 @@ function getOnderhoudCorrections(onderhoud, cvStaat) {
   };
   if (labels[onderhoud]) rows.push({ key: labels[onderhoud][0], val: labels[onderhoud][1], cls: labels[onderhoud][2] });
   if (cv[cvStaat]) rows.push({ key: cv[cvStaat][0], val: cv[cvStaat][1], cls: cv[cvStaat][2] });
-  if (document.getElementById('vloerverwarming').checked) rows.push({ key: 'Vloerverwarming', val: '+€ 8.000', cls: 'corr-pos' });
-  if (document.getElementById('balkon').checked) rows.push({ key: 'Balkon', val: '+€ 6.000', cls: 'corr-pos' });
-  if (document.getElementById('kelder').checked) rows.push({ key: 'Kelder', val: '+€ 10.000', cls: 'corr-pos' });
-  if (document.getElementById('zolder').checked) rows.push({ key: 'Bewoonbare zolder', val: '+€ 8.000', cls: 'corr-pos' });
+  if (activeExtras.has('vloerverwarming')) rows.push({ key: 'Vloerverwarming', val: '+€ 8.000', cls: 'corr-pos' });
+  if (activeExtras.has('balkon')) rows.push({ key: 'Balkon', val: '+€ 6.000', cls: 'corr-pos' });
+  if (activeExtras.has('kelder')) rows.push({ key: 'Kelder', val: '+€ 10.000', cls: 'corr-pos' });
+  if (activeExtras.has('zolder')) rows.push({ key: 'Bewoonbare zolder', val: '+€ 8.000', cls: 'corr-pos' });
 
   const keukenLabels = { nieuw: ['+€ 10.000', 'corr-pos'], goed: ['€ 0', 'corr-neu'], gedateerd: ['-€ 8.000', 'corr-neg'], origineel: ['-€ 15.000', 'corr-neg'] };
   const ks = document.getElementById('keuken-staat').value;
@@ -1525,10 +1525,10 @@ function runAnalyse() {
     'elektrisch': -12000, 'geen': -20000,
   };
   // Extra correcties
-  const vloerverwPremium = document.getElementById('vloerverwarming').checked ? 8000 : 0;
-  const balkonPremium = document.getElementById('balkon').checked ? 6000 : 0;
-  const kelderPremium = document.getElementById('kelder').checked ? 10000 : 0;
-  const zolderPremium = document.getElementById('zolder').checked ? 8000 : 0;
+  const vloerverwPremium = activeExtras.has('vloerverwarming') ? 8000 : 0;
+  const balkonPremium = activeExtras.has('balkon') ? 6000 : 0;
+  const kelderPremium = activeExtras.has('kelder') ? 10000 : 0;
+  const zolderPremium = activeExtras.has('zolder') ? 8000 : 0;
 
   const keukenCorr = { nieuw: 10000, goed: 0, gedateerd: -8000, origineel: -15000 };
   const badkamerCorr = { nieuw: 8000, goed: 0, gedateerd: -6000, origineel: -12000 };
@@ -1842,7 +1842,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.9.0</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.9.1</footer>
 
 </body>
 </html>
