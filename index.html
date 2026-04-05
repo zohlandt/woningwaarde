@@ -766,7 +766,7 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
 
     <div class="corrections-grid-2">
       <div class="field-group">
-        <label>Energielabel <a href="https://www.ep-online.nl/Energielabel/Search" target="_blank" style="font-size:0.6rem;color:var(--accent);text-decoration:none">(opzoeken)</a></label>
+        <label>Energielabel <span class="autofill-badge" id="ep-badge" style="display:none">EP-ONLINE</span></label>
         <select id="energielabel">
           <option value="">Onbekend</option>
           <option value="G">G</option><option value="F">F</option><option value="E">E</option>
@@ -1110,30 +1110,23 @@ async function fetchEnergielabel(bagId) {
   // Auto-select energielabel
   if (data.energieklasse) {
     const sel = document.getElementById('energielabel');
-    const labelVal = data.energieklasse.replace('A++++', 'A+++').replace('A+++', 'A+++');
     for (let opt of sel.options) {
-      if (opt.value === labelVal) { opt.selected = true; break; }
+      if (opt.value === data.energieklasse) { opt.selected = true; break; }
     }
+    document.getElementById('ep-badge').style.display = 'inline-block';
   }
 
-  // Auto-select woningtype from gebouwsubtype
-  if (data.gebouwsubtype) {
-    const typeMap = {
-      'Vrijstaande woning': 'vrijstaand',
-      'Twee-onder-een-kapwoning': '2o1kap',
-      'Hoekwoning': 'hoek',
-      'Tussenwoning': 'tussenwoning',
-      'Appartement': 'appartement',
-      'Bovenwoning': 'appartement',
-      'Benedenwoning': 'appartement',
-      'Maisonnette': 'appartement',
-      'Portiekflat': 'appartement',
-      'Galerijflat': 'appartement',
-    };
-    const mapped = typeMap[data.gebouwsubtype];
-    if (mapped) {
-      document.getElementById('type').value = mapped;
-    }
+  // Auto-select woningtype from gebouwtype/gebouwsubtype
+  const typeStr = data.gebouwsubtype || data.gebouwtype || '';
+  if (typeStr) {
+    const t = typeStr.toLowerCase();
+    let mapped = '';
+    if (t.includes('vrijstaand')) mapped = 'vrijstaand';
+    else if (t.includes('twee-onder') || t.includes('2-onder') || t.includes('geschakeld')) mapped = '2o1kap';
+    else if (t.includes('hoek')) mapped = 'hoek';
+    else if (t.includes('tussen') || t.includes('rijwoning')) mapped = 'tussenwoning';
+    else if (t.includes('appartement') || t.includes('flat') || t.includes('boven') || t.includes('beneden') || t.includes('maisonnette') || t.includes('portiek') || t.includes('galerij')) mapped = 'appartement';
+    if (mapped) document.getElementById('type').value = mapped;
   }
 }
 
@@ -1488,7 +1481,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.5.0</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.5.1</footer>
 
 </body>
 </html>

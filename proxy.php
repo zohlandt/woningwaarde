@@ -283,12 +283,12 @@ function fetchEnergielabel($bagId) {
     }
 
     return json_encode([
-        'energieklasse' => $label['energieklasse'] ?? null,
-        'energieIndex' => $label['energieIndex'] ?? null,
-        'gebouwtype' => $label['gebouwtype'] ?? null,
-        'gebouwsubtype' => $label['gebouwsubtype'] ?? null,
-        'registratiedatum' => $label['registratiedatum'] ?? null,
-        'geldig_tot' => $label['geldigTot'] ?? null,
+        'energieklasse' => $label['Energieklasse'] ?? null,
+        'energieIndex' => $label['EnergieIndex'] ?? null,
+        'gebouwtype' => $label['Gebouwtype'] ?? null,
+        'gebouwsubtype' => $label['Gebouwsubtype'] ?? $label['Gebouwtype'] ?? null,
+        'registratiedatum' => $label['Registratiedatum'] ?? null,
+        'geldig_tot' => $label['Geldig_tot'] ?? null,
     ]);
 }
 
