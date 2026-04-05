@@ -832,16 +832,97 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
       </div>
     </div>
 
+    <div class="corrections-grid" style="margin-bottom:1rem">
+      <div class="field-group">
+        <label>Keuken</label>
+        <select id="keuken-staat">
+          <option value="" disabled selected>Selecteer...</option>
+          <option value="nieuw">Nieuw (0–5 jr)</option>
+          <option value="goed">Goed (5–15 jr)</option>
+          <option value="gedateerd">Gedateerd (15+ jr)</option>
+          <option value="origineel">Origineel / nooit vervangen</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Badkamer</label>
+        <select id="badkamer-staat">
+          <option value="" disabled selected>Selecteer...</option>
+          <option value="nieuw">Nieuw (0–5 jr)</option>
+          <option value="goed">Goed (5–15 jr)</option>
+          <option value="gedateerd">Gedateerd (15+ jr)</option>
+          <option value="origineel">Origineel / nooit vervangen</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Parkeren</label>
+        <select id="parkeren">
+          <option value="" disabled selected>Selecteer...</option>
+          <option value="garage">Garage</option>
+          <option value="carport">Carport</option>
+          <option value="oprit">Eigen oprit</option>
+          <option value="parkeerplaats">Parkeerplaats</option>
+          <option value="straat">Openbare weg</option>
+          <option value="vergunning">Betaald parkeren / vergunning</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="corrections-grid" style="margin-bottom:1rem">
+      <div class="field-group">
+        <label>Tuin</label>
+        <select id="tuin">
+          <option value="" disabled selected>Selecteer...</option>
+          <option value="voor-achter">Voor- en achtertuin</option>
+          <option value="achter">Achtertuin</option>
+          <option value="patio">Patio / binnentuin</option>
+          <option value="dakterras">Dakterras</option>
+          <option value="geen">Geen tuin</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Tuin op</label>
+        <select id="tuin-orientatie">
+          <option value="" disabled selected>Selecteer...</option>
+          <option value="zuid">Zuiden</option>
+          <option value="zuidwest">Zuidwesten</option>
+          <option value="west">Westen</option>
+          <option value="oost">Oosten</option>
+          <option value="noord">Noorden</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Aantal badkamers</label>
+        <input type="number" id="aantal-badkamers" min="1" max="5" placeholder="1">
+      </div>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1rem">
+      <label style="cursor:pointer;display:flex;align-items:center;gap:0.4rem">
+        <input type="checkbox" id="vloerverwarming" style="width:auto;accent-color:var(--accent)">
+        <span style="font-size:0.8rem;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0">Vloerverwarming</span>
+      </label>
+      <label style="cursor:pointer;display:flex;align-items:center;gap:0.4rem">
+        <input type="checkbox" id="balkon" style="width:auto;accent-color:var(--accent)">
+        <span style="font-size:0.8rem;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0">Balkon</span>
+      </label>
+      <label style="cursor:pointer;display:flex;align-items:center;gap:0.4rem">
+        <input type="checkbox" id="kelder" style="width:auto;accent-color:var(--accent)">
+        <span style="font-size:0.8rem;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0">Kelder</span>
+      </label>
+      <label style="cursor:pointer;display:flex;align-items:center;gap:0.4rem">
+        <input type="checkbox" id="zolder" style="width:auto;accent-color:var(--accent)">
+        <span style="font-size:0.8rem;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0">Bewoonbare zolder</span>
+      </label>
+    </div>
+
     <div class="section-label" style="margin-top:0.25rem">Stap 4 — Bijzonderheden <span style="font-size:0.6rem;color:var(--accent);font-weight:400;text-transform:none;letter-spacing:0">(minimaal 3 selecteren)</span></div>
     <div class="toggle-row" id="toggles">
       <button class="toggle-btn" data-key="zwembad">Zwembad</button>
       <button class="toggle-btn" data-key="gasloos">Gasloos</button>
       <button class="toggle-btn" data-key="zonnepanelen">Zonnepanelen</button>
-      <button class="toggle-btn" data-key="garage">Garage</button>
       <button class="toggle-btn" data-key="waterligging">Waterligging</button>
       <button class="toggle-btn" data-key="airco">Airco</button>
       <button class="toggle-btn" data-key="dakkapel">Dakkapel</button>
-      <button class="toggle-btn" data-key="vloerverwarming">Vloerverwarming</button>
       <button class="toggle-btn" data-key="aanbouw">Aanbouw/uitbouw</button>
       <button class="toggle-btn" data-key="monumentstatus">Monument</button>
       <button class="toggle-btn" data-key="erfpacht">Erfpacht</button>
@@ -1093,6 +1174,16 @@ async function selectAddress(id, label) {
   document.getElementById('ep-badge').style.display = 'none';
   document.getElementById('onderhoud').selectedIndex = 0;
   document.getElementById('cv-staat').selectedIndex = 0;
+  document.getElementById('keuken-staat').selectedIndex = 0;
+  document.getElementById('badkamer-staat').selectedIndex = 0;
+  document.getElementById('parkeren').selectedIndex = 0;
+  document.getElementById('tuin').selectedIndex = 0;
+  document.getElementById('tuin-orientatie').selectedIndex = 0;
+  document.getElementById('aantal-badkamers').value = '';
+  document.getElementById('vloerverwarming').checked = false;
+  document.getElementById('balkon').checked = false;
+  document.getElementById('kelder').checked = false;
+  document.getElementById('zolder').checked = false;
   activeFeatures.clear();
   document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
 
@@ -1270,10 +1361,8 @@ function getCorrections(features, type, label, m2, perceel) {
   if (features.has('waterligging')) rows.push({ key: 'Waterligging', val: '+€ 15.000–25.000', cls: 'corr-pos' });
   if (features.has('gasloos'))      rows.push({ key: 'Volledig gasloos', val: '+€ 5.000–12.000', cls: 'corr-pos' });
   if (features.has('zonnepanelen')) rows.push({ key: 'Zonnepanelen', val: '+€ 4.000–10.000', cls: 'corr-pos' });
-  if (features.has('garage'))       rows.push({ key: 'Garage', val: '+€ 10.000–20.000', cls: 'corr-pos' });
   if (features.has('airco'))        rows.push({ key: 'Airconditioning', val: '+€ 3.000–7.000', cls: 'corr-pos' });
   if (features.has('dakkapel'))        rows.push({ key: 'Dakkapel', val: '+€ 5.000–10.000', cls: 'corr-pos' });
-  if (features.has('vloerverwarming'))  rows.push({ key: 'Vloerverwarming', val: '+€ 5.000–12.000', cls: 'corr-pos' });
   if (features.has('aanbouw'))          rows.push({ key: 'Aanbouw/uitbouw', val: '+€ 15.000–40.000', cls: 'corr-pos' });
   if (features.has('monumentstatus'))   rows.push({ key: 'Monumentstatus', val: '-€ 10.000–30.000', cls: 'corr-neg' });
   if (features.has('erfpacht'))         rows.push({ key: 'Erfpacht (niet afgekocht)', val: '-€ 20.000–60.000', cls: 'corr-neg' });
@@ -1304,6 +1393,34 @@ function getOnderhoudCorrections(onderhoud, cvStaat) {
   };
   if (labels[onderhoud]) rows.push({ key: labels[onderhoud][0], val: labels[onderhoud][1], cls: labels[onderhoud][2] });
   if (cv[cvStaat]) rows.push({ key: cv[cvStaat][0], val: cv[cvStaat][1], cls: cv[cvStaat][2] });
+  if (document.getElementById('vloerverwarming').checked) rows.push({ key: 'Vloerverwarming', val: '+€ 8.000', cls: 'corr-pos' });
+  if (document.getElementById('balkon').checked) rows.push({ key: 'Balkon', val: '+€ 6.000', cls: 'corr-pos' });
+  if (document.getElementById('kelder').checked) rows.push({ key: 'Kelder', val: '+€ 10.000', cls: 'corr-pos' });
+  if (document.getElementById('zolder').checked) rows.push({ key: 'Bewoonbare zolder', val: '+€ 8.000', cls: 'corr-pos' });
+
+  const keukenLabels = { nieuw: ['+€ 10.000', 'corr-pos'], goed: ['€ 0', 'corr-neu'], gedateerd: ['-€ 8.000', 'corr-neg'], origineel: ['-€ 15.000', 'corr-neg'] };
+  const ks = document.getElementById('keuken-staat').value;
+  if (keukenLabels[ks]) rows.push({ key: `Keuken (${ks})`, val: keukenLabels[ks][0], cls: keukenLabels[ks][1] });
+
+  const badkamerLabels = { nieuw: ['+€ 8.000', 'corr-pos'], goed: ['€ 0', 'corr-neu'], gedateerd: ['-€ 6.000', 'corr-neg'], origineel: ['-€ 12.000', 'corr-neg'] };
+  const bs = document.getElementById('badkamer-staat').value;
+  if (badkamerLabels[bs]) rows.push({ key: `Badkamer (${bs})`, val: badkamerLabels[bs][0], cls: badkamerLabels[bs][1] });
+
+  const ab = parseInt(document.getElementById('aantal-badkamers').value) || 1;
+  if (ab > 1) rows.push({ key: `${ab} badkamers (+${ab-1} extra)`, val: `+€ ${((ab-1)*12000).toLocaleString('nl-NL')}`, cls: 'corr-pos' });
+
+  const parkerenLabels = { garage: ['+€ 15.000', 'corr-pos'], carport: ['+€ 8.000', 'corr-pos'], oprit: ['+€ 5.000', 'corr-pos'], parkeerplaats: ['+€ 3.000', 'corr-pos'], straat: ['€ 0', 'corr-neu'], vergunning: ['-€ 5.000', 'corr-neg'] };
+  const pk = document.getElementById('parkeren').value;
+  if (parkerenLabels[pk]) rows.push({ key: `Parkeren (${pk})`, val: parkerenLabels[pk][0], cls: parkerenLabels[pk][1] });
+
+  const tuinLabels = { 'voor-achter': ['+€ 12.000', 'corr-pos'], achter: ['+€ 5.000', 'corr-pos'], patio: ['+€ 3.000', 'corr-pos'], dakterras: ['+€ 6.000', 'corr-pos'], geen: ['-€ 8.000', 'corr-neg'] };
+  const tn = document.getElementById('tuin').value;
+  if (tuinLabels[tn]) rows.push({ key: `Tuin (${tn})`, val: tuinLabels[tn][0], cls: tuinLabels[tn][1] });
+
+  const oriLabels = { zuid: ['+€ 8.000', 'corr-pos'], zuidwest: ['+€ 5.000', 'corr-pos'], west: ['+€ 2.000', 'corr-pos'], oost: ['€ 0', 'corr-neu'], noord: ['-€ 3.000', 'corr-neg'] };
+  const or = document.getElementById('tuin-orientatie').value;
+  if (oriLabels[or]) rows.push({ key: `Tuin op ${or}`, val: oriLabels[or][0], cls: oriLabels[or][1] });
+
   return rows;
 }
 
@@ -1313,10 +1430,8 @@ function premiumFactor(features, label) {
   if (features.has('waterligging')) p += 20000;
   if (features.has('gasloos'))      p += 8000;
   if (features.has('zonnepanelen')) p += 7000;
-  if (features.has('garage'))       p += 15000;
   if (features.has('airco'))        p += 5000;
   if (features.has('dakkapel'))        p += 7500;
-  if (features.has('vloerverwarming')) p += 8000;
   if (features.has('aanbouw'))         p += 25000;
   if (features.has('monumentstatus'))  p -= 20000;
   if (features.has('erfpacht'))        p -= 40000;
@@ -1409,7 +1524,28 @@ function runAnalyse() {
     'stadsverwarming': -8000, 'wko': 15000, 'pellet': -3000,
     'elektrisch': -12000, 'geen': -20000,
   };
-  const onderhoudPremium = (onderhoudCorr[onderhoud] || 0) + (cvCorr[document.getElementById('cv-staat').value] || 0);
+  // Extra correcties
+  const vloerverwPremium = document.getElementById('vloerverwarming').checked ? 8000 : 0;
+  const balkonPremium = document.getElementById('balkon').checked ? 6000 : 0;
+  const kelderPremium = document.getElementById('kelder').checked ? 10000 : 0;
+  const zolderPremium = document.getElementById('zolder').checked ? 8000 : 0;
+
+  const keukenCorr = { nieuw: 10000, goed: 0, gedateerd: -8000, origineel: -15000 };
+  const badkamerCorr = { nieuw: 8000, goed: 0, gedateerd: -6000, origineel: -12000 };
+  const parkerenCorr = { garage: 15000, carport: 8000, oprit: 5000, parkeerplaats: 3000, straat: 0, vergunning: -5000 };
+  const tuinCorr = { 'voor-achter': 12000, achter: 5000, patio: 3000, dakterras: 6000, geen: -8000 };
+  const orientatieCorr = { zuid: 8000, zuidwest: 5000, west: 2000, oost: 0, noord: -3000 };
+  const extraBadkamers = Math.max(0, (parseInt(document.getElementById('aantal-badkamers').value) || 1) - 1) * 12000;
+
+  const onderhoudPremium = (onderhoudCorr[onderhoud] || 0)
+    + (cvCorr[document.getElementById('cv-staat').value] || 0)
+    + vloerverwPremium + balkonPremium + kelderPremium + zolderPremium
+    + (keukenCorr[document.getElementById('keuken-staat').value] || 0)
+    + (badkamerCorr[document.getElementById('badkamer-staat').value] || 0)
+    + (parkerenCorr[document.getElementById('parkeren').value] || 0)
+    + (tuinCorr[document.getElementById('tuin').value] || 0)
+    + (orientatieCorr[document.getElementById('tuin-orientatie').value] || 0)
+    + extraBadkamers;
 
   const basePrijs = m2Prijs * m2;
   const estimate = Math.round((basePrijs + premium + onderhoudPremium) / 1000) * 1000;
@@ -1706,7 +1842,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.8.1</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.9.0</footer>
 
 </body>
 </html>
