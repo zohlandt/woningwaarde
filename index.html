@@ -804,7 +804,7 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
         <input type="checkbox" id="ai-toggle">
         <span class="ai-slider"></span>
       </label>
-      <span class="ai-toggle-label">AI-analyse inschakelen (Claude Sonnet · ~€ 0,01–0,03 per zoekopdracht)</span>
+      <span class="ai-toggle-label">Diepteanalyse met AI (~€ 0,01–0,03 per zoekopdracht)</span>
     </div>
 
     <button class="analyse-btn" id="analyseBtn" onclick="startAnalyse()">
@@ -1384,7 +1384,7 @@ async function runAiAnalyse(wisk) {
   };
 
   const start = performance.now();
-  const entry = { label: 'Claude AI (proxy)', url: 'proxy.php?source=claude', status: 'pending', duration: 0, cost: 0 };
+  const entry = { label: 'Diepteanalyse AI (proxy)', url: 'proxy.php?source=claude', status: 'pending', duration: 0, cost: 0 };
   apiLog.push(entry);
 
   try {
@@ -1428,12 +1428,12 @@ async function runAiAnalyse(wisk) {
     compareZone.className = 'compare-grid fade-up';
     compareZone.innerHTML = `
       <div class="compare-card">
-        <div class="compare-method">Wiskundig</div>
+        <div class="compare-method">Rekenmodel</div>
         <div class="compare-value">${fmt(wisk.estimate)}</div>
         <div style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted);margin-top:0.3rem">${fmtK(wisk.low)} – ${fmtK(wisk.high)}</div>
       </div>
       <div class="compare-card ai">
-        <div class="compare-method">Claude AI</div>
+        <div class="compare-method">Diepteanalyse</div>
         <div class="compare-value">${fmt(data.schatting)}</div>
         <div style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted);margin-top:0.3rem">${fmtK(data.range_laag)} – ${fmtK(data.range_hoog)}</div>
       </div>
@@ -1449,7 +1449,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.4.1</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.4.2</footer>
 
 </body>
 </html>
