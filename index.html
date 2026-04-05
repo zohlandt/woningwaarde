@@ -802,6 +802,7 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
       <button class="toggle-btn" data-key="waterligging">Waterligging</button>
       <button class="toggle-btn" data-key="airco">Airco</button>
       <button class="toggle-btn" data-key="dakkapel">Dakkapel</button>
+      <button class="toggle-btn" data-key="stadsverwarming">Stadsverwarming</button>
     </div>
 
     <div class="ai-toggle-wrap">
@@ -1207,7 +1208,8 @@ function getCorrections(features, type, label, m2, perceel) {
   if (features.has('zonnepanelen')) rows.push({ key: 'Zonnepanelen', val: '+€ 4.000–10.000', cls: 'corr-pos' });
   if (features.has('garage'))       rows.push({ key: 'Garage', val: '+€ 10.000–20.000', cls: 'corr-pos' });
   if (features.has('airco'))        rows.push({ key: 'Airconditioning', val: '+€ 3.000–7.000', cls: 'corr-pos' });
-  if (features.has('dakkapel'))     rows.push({ key: 'Dakkapel', val: '+€ 5.000–10.000', cls: 'corr-pos' });
+  if (features.has('dakkapel'))        rows.push({ key: 'Dakkapel', val: '+€ 5.000–10.000', cls: 'corr-pos' });
+  if (features.has('stadsverwarming')) rows.push({ key: 'Stadsverwarming', val: '-€ 5.000–15.000', cls: 'corr-neg' });
 
   if (label === 'A+++' || label === 'A++') rows.push({ key: `Energielabel ${label}`, val: '+€ 15.000–25.000', cls: 'corr-pos' });
   else if (label === 'A+')  rows.push({ key: 'Energielabel A+', val: '+€ 8.000–15.000', cls: 'corr-pos' });
@@ -1231,7 +1233,8 @@ function premiumFactor(features, label) {
   if (features.has('zonnepanelen')) p += 7000;
   if (features.has('garage'))       p += 15000;
   if (features.has('airco'))        p += 5000;
-  if (features.has('dakkapel'))     p += 7500;
+  if (features.has('dakkapel'))        p += 7500;
+  if (features.has('stadsverwarming')) p -= 10000;
   if (label === 'A+++') p += 20000;
   else if (label === 'A++') p += 17000;
   else if (label === 'A+')  p += 11000;
@@ -1598,7 +1601,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.6.6</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.6.7</footer>
 
 </body>
 </html>
