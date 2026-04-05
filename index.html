@@ -793,7 +793,32 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
       </div>
     </div>
 
-    <div class="section-label" style="margin-top:0.25rem">Stap 3 — Bijzonderheden</div>
+    <div class="section-label" style="margin-top:0.25rem">Stap 3 — Staat van onderhoud</div>
+    <div class="corrections-grid-2" style="margin-bottom:1rem">
+      <div class="field-group">
+        <label>Algemene staat</label>
+        <select id="onderhoud" required>
+          <option value="" disabled selected>Selecteer...</option>
+          <option value="uitstekend">Uitstekend — volledig gerenoveerd</option>
+          <option value="goed">Goed — normaal onderhouden</option>
+          <option value="redelijk">Redelijk — klein achterstallig onderhoud</option>
+          <option value="matig">Matig — flink achterstallig onderhoud</option>
+          <option value="slecht">Slecht — grote ingreep nodig</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>CV-ketel / verwarming</label>
+        <select id="cv-staat">
+          <option value="" disabled selected>Selecteer...</option>
+          <option value="nieuw">Nieuw (0–5 jaar)</option>
+          <option value="goed">Goed (5–10 jaar)</option>
+          <option value="oud">Oud (10–15 jaar)</option>
+          <option value="verouderd">Verouderd (15+ jaar)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:0.25rem">Stap 4 — Bijzonderheden <span style="font-size:0.6rem;color:var(--accent);font-weight:400;text-transform:none;letter-spacing:0">(min. 3 selecteren)</span></div>
     <div class="toggle-row" id="toggles">
       <button class="toggle-btn" data-key="zwembad">Zwembad</button>
       <button class="toggle-btn" data-key="warmtepomp">Warmtepomp</button>
@@ -808,17 +833,18 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
       <button class="toggle-btn" data-key="aanbouw">Aanbouw/uitbouw</button>
       <button class="toggle-btn" data-key="monumentstatus">Monument</button>
       <button class="toggle-btn" data-key="erfpacht">Erfpacht</button>
-      <button class="toggle-btn" data-key="achterstallig">Achterstallig onderhoud</button>
       <button class="toggle-btn" data-key="asbest">Asbest</button>
       <button class="toggle-btn" data-key="fundering">Funderingsproblemen</button>
+      <button class="toggle-btn" data-key="geen">Geen van bovenstaande</button>
     </div>
+    <div id="validation-msg" style="display:none;color:var(--accent);font-size:0.8rem;margin-top:0.5rem;font-weight:600"></div>
 
     <div class="ai-toggle-wrap">
       <label class="ai-switch">
         <input type="checkbox" id="ai-toggle">
         <span class="ai-slider"></span>
       </label>
-      <span class="ai-toggle-label">Diepteanalyse met AI (~€ 0,01–0,03 per zoekopdracht)</span>
+      <span class="ai-toggle-label">Diepteanalyse met AI (€ 2,50 per analyse)</span>
     </div>
 
     <button class="analyse-btn" id="analyseBtn" onclick="startAnalyse()">
@@ -900,9 +926,13 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
     </div>
     <div id="cost-content" style="display:none">
       <table class="cost-table" id="cost-table">
-        <thead><tr><th>API</th><th>Status</th><th>Duur</th><th>Kosten</th></tr></thead>
+        <thead><tr><th>API</th><th>Status</th><th>Duur</th><th>Werkelijk</th><th>Klant</th></tr></thead>
         <tbody id="cost-body"></tbody>
-        <tfoot><tr><td colspan="3" style="font-weight:600">Totaal</td><td id="cost-total" style="font-weight:600">€ 0,00</td></tr></tfoot>
+        <tfoot>
+          <tr><td colspan="3" style="font-weight:600">API-kosten</td><td id="cost-total" style="font-weight:600">€ 0,00</td><td></td></tr>
+          <tr><td colspan="3" style="font-weight:600">Klantprijs</td><td></td><td id="cost-customer" style="font-weight:600;color:var(--accent2)">€ 0,00</td></tr>
+          <tr><td colspan="3" style="font-weight:600">Marge</td><td colspan="2" id="cost-margin" style="font-weight:600;color:var(--accent2)">€ 0,00</td></tr>
+        </tfoot>
       </table>
     </div>
   </details>
@@ -978,10 +1008,14 @@ function renderCostTable() {
       <td class="${e.status === 'ok' ? 'cost-ok' : 'cost-err'}">${e.status}</td>
       <td>${e.duration}ms</td>
       <td>${fmt2(e.cost)}</td>
+      <td>${e.customer_price ? fmt2(e.customer_price) : '—'}</td>
     </tr>
   `).join('');
   const total = apiLog.reduce((s, e) => s + e.cost, 0);
+  const customerTotal = apiLog.reduce((s, e) => s + (e.customer_price || 0), 0);
   document.getElementById('cost-total').textContent = fmt2(total);
+  document.getElementById('cost-customer').textContent = fmt2(customerTotal);
+  document.getElementById('cost-margin').textContent = fmt2(customerTotal - total);
 }
 
 // ── Adres autocomplete (PDOK) ─────────────────────────
@@ -1045,6 +1079,10 @@ async function selectAddress(id, label) {
   document.getElementById('type').selectedIndex = 0;
   document.getElementById('bag-badge').style.display = 'none';
   document.getElementById('ep-badge').style.display = 'none';
+  document.getElementById('onderhoud').selectedIndex = 0;
+  document.getElementById('cv-staat').selectedIndex = 0;
+  activeFeatures.clear();
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
 
   // Fill address fields
   document.getElementById('straat').value = `${p.straatnaam} ${p.huisnummer}${p.huis_nlt && p.huis_nlt !== String(p.huisnummer) ? '' : ''}`;
@@ -1188,6 +1226,13 @@ async function fetchEnergielabel(bagId) {
   }
 }
 
+function showValidation(msg) {
+  const el = document.getElementById('validation-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 // ── Hulpfuncties ──────────────────────────────────────
 function fmt(n) { return '€ ' + Math.round(n).toLocaleString('nl-NL'); }
 function fmtK(n) { return '€ ' + Math.round(n/1000) + 'K'; }
@@ -1222,7 +1267,6 @@ function getCorrections(features, type, label, m2, perceel) {
   if (features.has('aanbouw'))          rows.push({ key: 'Aanbouw/uitbouw', val: '+€ 15.000–40.000', cls: 'corr-pos' });
   if (features.has('monumentstatus'))   rows.push({ key: 'Monumentstatus', val: '-€ 10.000–30.000', cls: 'corr-neg' });
   if (features.has('erfpacht'))         rows.push({ key: 'Erfpacht (niet afgekocht)', val: '-€ 20.000–60.000', cls: 'corr-neg' });
-  if (features.has('achterstallig'))    rows.push({ key: 'Achterstallig onderhoud', val: '-€ 15.000–50.000', cls: 'corr-neg' });
   if (features.has('asbest'))           rows.push({ key: 'Asbest aanwezig', val: '-€ 10.000–30.000', cls: 'corr-neg' });
   if (features.has('fundering'))        rows.push({ key: 'Funderingsproblemen', val: '-€ 30.000–100.000', cls: 'corr-neg' });
 
@@ -1236,6 +1280,15 @@ function getCorrections(features, type, label, m2, perceel) {
   if (perceel && perceel > 400) rows.push({ key: `Groot perceel (${perceel} m2)`, val: '+€ 10.000–20.000', cls: 'corr-pos' });
   if (perceel && perceel < 200) rows.push({ key: `Klein perceel (${perceel} m2)`, val: '-€ 5.000–15.000', cls: 'corr-neg' });
   if (rows.length === 0) rows.push({ key: 'Geen bijzonderheden opgegeven', val: 'neutraal', cls: 'corr-neu' });
+  return rows;
+}
+
+function getOnderhoudCorrections(onderhoud, cvStaat) {
+  const rows = [];
+  const labels = { uitstekend: ['Uitstekend onderhoud', '+€ 15.000', 'corr-pos'], goed: ['Goed onderhoud', '€ 0', 'corr-neu'], redelijk: ['Redelijk — klein achterstallig', '-€ 15.000', 'corr-neg'], matig: ['Matig — flink achterstallig', '-€ 35.000', 'corr-neg'], slecht: ['Slecht — grote ingreep nodig', '-€ 60.000', 'corr-neg'] };
+  const cv = { nieuw: ['CV-ketel nieuw (0–5 jr)', '+€ 3.000', 'corr-pos'], goed: ['CV-ketel goed (5–10 jr)', '€ 0', 'corr-neu'], oud: ['CV-ketel oud (10–15 jr)', '-€ 5.000', 'corr-neg'], verouderd: ['CV-ketel verouderd (15+ jr)', '-€ 10.000', 'corr-neg'] };
+  if (labels[onderhoud]) rows.push({ key: labels[onderhoud][0], val: labels[onderhoud][1], cls: labels[onderhoud][2] });
+  if (cv[cvStaat]) rows.push({ key: cv[cvStaat][0], val: cv[cvStaat][1], cls: cv[cvStaat][2] });
   return rows;
 }
 
@@ -1254,7 +1307,6 @@ function premiumFactor(features, label) {
   if (features.has('aanbouw'))         p += 25000;
   if (features.has('monumentstatus'))  p -= 20000;
   if (features.has('erfpacht'))        p -= 40000;
-  if (features.has('achterstallig'))  p -= 30000;
   if (features.has('asbest'))          p -= 20000;
   if (features.has('fundering'))       p -= 65000;
   if (label === 'A+++') p += 20000;
@@ -1297,9 +1349,16 @@ function runAnalyse() {
   const perceel  = parseFloat(document.getElementById('perceel').value) || null;
   const bouwjaar = parseInt(document.getElementById('bouwjaar').value) || 2000;
   const label    = document.getElementById('energielabel').value;
+  // ── Validatie ────────────────────────────────────────
+  const vmsg = document.getElementById('validation-msg');
+  vmsg.style.display = 'none';
   const typeEl = document.getElementById('type');
-  if (!typeEl.value) { alert('Selecteer een woningtype'); return null; }
+  const onderhoudEl = document.getElementById('onderhoud');
+  if (!typeEl.value) { showValidation('Selecteer een woningtype'); return null; }
+  if (!onderhoudEl.value) { showValidation('Selecteer de staat van onderhoud'); return null; }
+  if (activeFeatures.size < 3 && !activeFeatures.has('geen')) { showValidation('Selecteer minimaal 3 bijzonderheden, of kies "Geen van bovenstaande"'); return null; }
   const type = typeEl.value;
+  const onderhoud = onderhoudEl.value;
   const premium  = premiumFactor(activeFeatures, label);
 
   // ── Determine m2 price ──────────────────────────────
@@ -1329,8 +1388,13 @@ function runAnalyse() {
     m2PrijsBron = 'Landelijk gemiddelde (fallback)';
   }
 
+  // Onderhoudscorrectie
+  const onderhoudCorr = { uitstekend: 15000, goed: 0, redelijk: -15000, matig: -35000, slecht: -60000 };
+  const cvCorr = { nieuw: 3000, goed: 0, oud: -5000, verouderd: -10000 };
+  const onderhoudPremium = (onderhoudCorr[onderhoud] || 0) + (cvCorr[document.getElementById('cv-staat').value] || 0);
+
   const basePrijs = m2Prijs * m2;
-  const estimate = Math.round((basePrijs + premium) / 1000) * 1000;
+  const estimate = Math.round((basePrijs + premium + onderhoudPremium) / 1000) * 1000;
   const low  = Math.round(estimate * 0.92 / 1000) * 1000;
   const high = Math.round(estimate * 1.09 / 1000) * 1000;
 
@@ -1423,7 +1487,7 @@ function runAnalyse() {
   }
 
   // ── Correcties ──────────────────────────────────────
-  const corrRows = getCorrections(activeFeatures, type, label, m2, perceel);
+  const corrRows = [...getCorrections(activeFeatures, type, label, m2, perceel), ...getOnderhoudCorrections(onderhoud, document.getElementById('cv-staat').value)];
   document.getElementById('corr-body').innerHTML = corrRows.map(r =>
     `<div class="corr-row">
       <span class="corr-key">${r.key}</span>
@@ -1578,6 +1642,7 @@ async function runAiAnalyse(wisk) {
 
     entry.status = 'ok';
     entry.cost = data.cost_eur || 0;
+    entry.customer_price = 2.50;
 
     // Render AI result
     const corrections = (data.correcties || []).map(c =>
@@ -1591,7 +1656,7 @@ async function runAiAnalyse(wisk) {
         <div class="ai-reasoning">${data.onderbouwing}</div>
         ${corrections ? `<div class="ai-corrections">${corrections}</div>` : ''}
         <div class="ai-cost-line">
-          ${data.tokens_input} input + ${data.tokens_output} output tokens · ${fmt2(data.cost_eur)}
+          Kosten diepteanalyse: € 2,50
         </div>
       </div>
     `;
@@ -1623,7 +1688,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.7.2</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.8.0</footer>
 
 </body>
 </html>
