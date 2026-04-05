@@ -873,13 +873,19 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
   </div>
 
   <!-- Kostentracker -->
-  <details class="cost-panel fade-up fade-up-delay-5">
+  <details class="cost-panel fade-up fade-up-delay-5" id="cost-panel" style="display:none">
     <summary>API-aanroepen &amp; kosten</summary>
-    <table class="cost-table" id="cost-table">
-      <thead><tr><th>API</th><th>Status</th><th>Duur</th><th>Kosten</th></tr></thead>
-      <tbody id="cost-body"></tbody>
-      <tfoot><tr><td colspan="3" style="font-weight:600">Totaal</td><td id="cost-total" style="font-weight:600">€ 0,00</td></tr></tfoot>
-    </table>
+    <div id="cost-pin-gate" style="margin-top:0.5rem">
+      <input type="password" id="cost-pin" placeholder="Pincode" style="width:100px;font-size:0.75rem;padding:0.3rem 0.5rem;border:1px solid var(--border);border-radius:2px;font-family:'DM Mono',monospace">
+      <button onclick="checkCostPin()" style="font-size:0.7rem;padding:0.3rem 0.6rem;border:none;background:var(--accent);color:#fff;border-radius:2px;cursor:pointer;margin-left:0.25rem">OK</button>
+    </div>
+    <div id="cost-content" style="display:none">
+      <table class="cost-table" id="cost-table">
+        <thead><tr><th>API</th><th>Status</th><th>Duur</th><th>Kosten</th></tr></thead>
+        <tbody id="cost-body"></tbody>
+        <tfoot><tr><td colspan="3" style="font-weight:600">Totaal</td><td id="cost-total" style="font-weight:600">€ 0,00</td></tr></tfoot>
+      </table>
+    </div>
   </details>
 
 </div>
@@ -926,7 +932,20 @@ async function trackedFetch(url, label, cost = 0) {
   }
 }
 
+let costUnlocked = false;
+function checkCostPin() {
+  if (document.getElementById('cost-pin').value === '8654') {
+    costUnlocked = true;
+    document.getElementById('cost-pin-gate').style.display = 'none';
+    document.getElementById('cost-content').style.display = 'block';
+    renderCostTable();
+  }
+}
+document.getElementById('cost-pin')?.addEventListener('keydown', e => { if (e.key === 'Enter') checkCostPin(); });
+
 function renderCostTable() {
+  document.getElementById('cost-panel').style.display = 'block';
+  if (!costUnlocked) return;
   const tbody = document.getElementById('cost-body');
   tbody.innerHTML = apiLog.map(e => `
     <tr>
@@ -1381,7 +1400,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.3.0</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.3.1</footer>
 
 </body>
 </html>
