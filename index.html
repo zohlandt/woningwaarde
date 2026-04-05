@@ -780,8 +780,9 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
       </div>
       <div class="field-group">
         <label>Woningtype</label>
-        <select id="type">
+        <select id="type" required>
           <option value="" disabled selected>Selecteer type...</option>
+          <option value="onbekend">Onbekend</option>
           <option value="vrijstaand">Vrijstaand</option>
           <option value="2o1kap">2-onder-1-kap</option>
           <option value="hoek">Hoekwoning</option>
@@ -1022,7 +1023,19 @@ async function selectAddress(id, label) {
   if (!data || !data.response || !data.response.docs.length) return;
 
   state.pdok = data.response.docs[0];
+  state.bag = null; state.cbs = null; state.woz = null;
+  state.transactie = null; state.buurt_transacties = null;
+  state.walter_city = null; state.walter_buurt = null;
   const p = state.pdok;
+
+  // Reset form fields
+  document.getElementById('m2').value = '';
+  document.getElementById('perceel').value = '';
+  document.getElementById('bouwjaar').value = '';
+  document.getElementById('energielabel').selectedIndex = 0;
+  document.getElementById('type').selectedIndex = 0;
+  document.getElementById('bag-badge').style.display = 'none';
+  document.getElementById('ep-badge').style.display = 'none';
 
   // Fill address fields
   document.getElementById('straat').value = `${p.straatnaam} ${p.huisnummer}${p.huis_nlt && p.huis_nlt !== String(p.huisnummer) ? '' : ''}`;
@@ -1259,7 +1272,9 @@ function runAnalyse() {
   const perceel  = parseFloat(document.getElementById('perceel').value) || null;
   const bouwjaar = parseInt(document.getElementById('bouwjaar').value) || 2000;
   const label    = document.getElementById('energielabel').value;
-  const type     = document.getElementById('type').value || 'tussenwoning';
+  const typeEl = document.getElementById('type');
+  if (!typeEl.value) { alert('Selecteer een woningtype'); return null; }
+  const type = typeEl.value;
   const premium  = premiumFactor(activeFeatures, label);
 
   // ── Determine m2 price ──────────────────────────────
@@ -1583,7 +1598,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.6.5</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.6.6</footer>
 
 </body>
 </html>
