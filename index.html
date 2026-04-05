@@ -949,7 +949,7 @@ async function checkCostPin() {
   const val = document.getElementById('cost-pin').value;
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(val));
   const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  if (hash === '9baed8fceea6e36d36670d72429d909547165efc038c293a14a41ef2edf83141') {
+  if (hash === '17918fe6a941b63dd294394201ed76eb912f6288a0b0385686f187becfaafa4f') {
     costUnlocked = true;
     document.getElementById('cost-pin-gate').style.display = 'none';
     document.getElementById('cost-content').style.display = 'block';
@@ -1583,7 +1583,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.6.3</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.6.4</footer>
 
 </body>
 </html>
