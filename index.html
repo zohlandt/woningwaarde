@@ -807,21 +807,34 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
         </select>
       </div>
       <div class="field-group">
-        <label>CV-ketel / verwarming</label>
+        <label>Verwarming</label>
         <select id="cv-staat">
           <option value="" disabled selected>Selecteer...</option>
-          <option value="nieuw">Nieuw (0–5 jaar)</option>
-          <option value="goed">Goed (5–10 jaar)</option>
-          <option value="oud">Oud (10–15 jaar)</option>
-          <option value="verouderd">Verouderd (15+ jaar)</option>
+          <optgroup label="Warmtepomp">
+            <option value="wp-nieuw">Warmtepomp nieuw (0–5 jr)</option>
+            <option value="wp-goed">Warmtepomp goed (5–10 jr)</option>
+            <option value="wp-oud">Warmtepomp oud (10+ jr)</option>
+          </optgroup>
+          <optgroup label="CV-ketel (gas)">
+            <option value="cv-nieuw">CV-ketel nieuw (0–5 jr)</option>
+            <option value="cv-goed">CV-ketel goed (5–10 jr)</option>
+            <option value="cv-oud">CV-ketel oud (10–15 jr)</option>
+            <option value="cv-verouderd">CV-ketel verouderd (15+ jr)</option>
+          </optgroup>
+          <optgroup label="Overig">
+            <option value="stadsverwarming">Stadsverwarming / blokverwarming</option>
+            <option value="wko">WKO (warmte-koude opslag)</option>
+            <option value="pellet">Pelletkachel / houtkachel</option>
+            <option value="elektrisch">Elektrische verwarming</option>
+            <option value="geen">Geen centrale verwarming</option>
+          </optgroup>
         </select>
       </div>
     </div>
 
-    <div class="section-label" style="margin-top:0.25rem">Stap 4 — Bijzonderheden <span style="font-size:0.6rem;color:var(--accent);font-weight:400;text-transform:none;letter-spacing:0">(min. 3 selecteren)</span></div>
+    <div class="section-label" style="margin-top:0.25rem">Stap 4 — Bijzonderheden <span style="font-size:0.6rem;color:var(--accent);font-weight:400;text-transform:none;letter-spacing:0">(minimaal 3 selecteren)</span></div>
     <div class="toggle-row" id="toggles">
       <button class="toggle-btn" data-key="zwembad">Zwembad</button>
-      <button class="toggle-btn" data-key="warmtepomp">Warmtepomp</button>
       <button class="toggle-btn" data-key="gasloos">Gasloos</button>
       <button class="toggle-btn" data-key="zonnepanelen">Zonnepanelen</button>
       <button class="toggle-btn" data-key="garage">Garage</button>
@@ -829,7 +842,6 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
       <button class="toggle-btn" data-key="airco">Airco</button>
       <button class="toggle-btn" data-key="dakkapel">Dakkapel</button>
       <button class="toggle-btn" data-key="vloerverwarming">Vloerverwarming</button>
-      <button class="toggle-btn" data-key="stadsverwarming">Stadsverwarming</button>
       <button class="toggle-btn" data-key="aanbouw">Aanbouw/uitbouw</button>
       <button class="toggle-btn" data-key="monumentstatus">Monument</button>
       <button class="toggle-btn" data-key="erfpacht">Erfpacht</button>
@@ -1256,14 +1268,12 @@ function getCorrections(features, type, label, m2, perceel) {
   const rows = [];
   if (features.has('zwembad'))      rows.push({ key: 'Zwembad', val: '+€ 25.000–40.000', cls: 'corr-pos' });
   if (features.has('waterligging')) rows.push({ key: 'Waterligging', val: '+€ 15.000–25.000', cls: 'corr-pos' });
-  if (features.has('warmtepomp'))   rows.push({ key: 'Warmtepomp', val: '+€ 8.000–15.000', cls: 'corr-pos' });
   if (features.has('gasloos'))      rows.push({ key: 'Volledig gasloos', val: '+€ 5.000–12.000', cls: 'corr-pos' });
   if (features.has('zonnepanelen')) rows.push({ key: 'Zonnepanelen', val: '+€ 4.000–10.000', cls: 'corr-pos' });
   if (features.has('garage'))       rows.push({ key: 'Garage', val: '+€ 10.000–20.000', cls: 'corr-pos' });
   if (features.has('airco'))        rows.push({ key: 'Airconditioning', val: '+€ 3.000–7.000', cls: 'corr-pos' });
   if (features.has('dakkapel'))        rows.push({ key: 'Dakkapel', val: '+€ 5.000–10.000', cls: 'corr-pos' });
   if (features.has('vloerverwarming'))  rows.push({ key: 'Vloerverwarming', val: '+€ 5.000–12.000', cls: 'corr-pos' });
-  if (features.has('stadsverwarming'))  rows.push({ key: 'Stadsverwarming', val: '-€ 5.000–15.000', cls: 'corr-neg' });
   if (features.has('aanbouw'))          rows.push({ key: 'Aanbouw/uitbouw', val: '+€ 15.000–40.000', cls: 'corr-pos' });
   if (features.has('monumentstatus'))   rows.push({ key: 'Monumentstatus', val: '-€ 10.000–30.000', cls: 'corr-neg' });
   if (features.has('erfpacht'))         rows.push({ key: 'Erfpacht (niet afgekocht)', val: '-€ 20.000–60.000', cls: 'corr-neg' });
@@ -1286,7 +1296,12 @@ function getCorrections(features, type, label, m2, perceel) {
 function getOnderhoudCorrections(onderhoud, cvStaat) {
   const rows = [];
   const labels = { uitstekend: ['Uitstekend onderhoud', '+€ 15.000', 'corr-pos'], goed: ['Goed onderhoud', '€ 0', 'corr-neu'], redelijk: ['Redelijk — klein achterstallig', '-€ 15.000', 'corr-neg'], matig: ['Matig — flink achterstallig', '-€ 35.000', 'corr-neg'], slecht: ['Slecht — grote ingreep nodig', '-€ 60.000', 'corr-neg'] };
-  const cv = { nieuw: ['CV-ketel nieuw (0–5 jr)', '+€ 3.000', 'corr-pos'], goed: ['CV-ketel goed (5–10 jr)', '€ 0', 'corr-neu'], oud: ['CV-ketel oud (10–15 jr)', '-€ 5.000', 'corr-neg'], verouderd: ['CV-ketel verouderd (15+ jr)', '-€ 10.000', 'corr-neg'] };
+  const cv = {
+    'wp-nieuw': ['Warmtepomp nieuw', '+€ 18.000', 'corr-pos'], 'wp-goed': ['Warmtepomp goed', '+€ 12.000', 'corr-pos'], 'wp-oud': ['Warmtepomp oud', '+€ 5.000', 'corr-pos'],
+    'cv-nieuw': ['CV-ketel nieuw', '+€ 3.000', 'corr-pos'], 'cv-goed': ['CV-ketel goed', '€ 0', 'corr-neu'], 'cv-oud': ['CV-ketel oud', '-€ 5.000', 'corr-neg'], 'cv-verouderd': ['CV-ketel verouderd', '-€ 10.000', 'corr-neg'],
+    'stadsverwarming': ['Stadsverwarming', '-€ 8.000', 'corr-neg'], 'wko': ['WKO', '+€ 15.000', 'corr-pos'], 'pellet': ['Pellet-/houtkachel', '-€ 3.000', 'corr-neg'],
+    'elektrisch': ['Elektrische verwarming', '-€ 12.000', 'corr-neg'], 'geen': ['Geen centrale verwarming', '-€ 20.000', 'corr-neg'],
+  };
   if (labels[onderhoud]) rows.push({ key: labels[onderhoud][0], val: labels[onderhoud][1], cls: labels[onderhoud][2] });
   if (cv[cvStaat]) rows.push({ key: cv[cvStaat][0], val: cv[cvStaat][1], cls: cv[cvStaat][2] });
   return rows;
@@ -1296,14 +1311,12 @@ function premiumFactor(features, label) {
   let p = 0;
   if (features.has('zwembad'))      p += 32000;
   if (features.has('waterligging')) p += 20000;
-  if (features.has('warmtepomp'))   p += 11000;
   if (features.has('gasloos'))      p += 8000;
   if (features.has('zonnepanelen')) p += 7000;
   if (features.has('garage'))       p += 15000;
   if (features.has('airco'))        p += 5000;
   if (features.has('dakkapel'))        p += 7500;
   if (features.has('vloerverwarming')) p += 8000;
-  if (features.has('stadsverwarming')) p -= 10000;
   if (features.has('aanbouw'))         p += 25000;
   if (features.has('monumentstatus'))  p -= 20000;
   if (features.has('erfpacht'))        p -= 40000;
@@ -1390,7 +1403,12 @@ function runAnalyse() {
 
   // Onderhoudscorrectie
   const onderhoudCorr = { uitstekend: 15000, goed: 0, redelijk: -15000, matig: -35000, slecht: -60000 };
-  const cvCorr = { nieuw: 3000, goed: 0, oud: -5000, verouderd: -10000 };
+  const cvCorr = {
+    'wp-nieuw': 18000, 'wp-goed': 12000, 'wp-oud': 5000,
+    'cv-nieuw': 3000, 'cv-goed': 0, 'cv-oud': -5000, 'cv-verouderd': -10000,
+    'stadsverwarming': -8000, 'wko': 15000, 'pellet': -3000,
+    'elektrisch': -12000, 'geen': -20000,
+  };
   const onderhoudPremium = (onderhoudCorr[onderhoud] || 0) + (cvCorr[document.getElementById('cv-staat').value] || 0);
 
   const basePrijs = m2Prijs * m2;
@@ -1688,7 +1706,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.8.0</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.8.1</footer>
 
 </body>
 </html>
