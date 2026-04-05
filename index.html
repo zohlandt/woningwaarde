@@ -1105,7 +1105,11 @@ async function fetchEnergielabel(bagId) {
   if (!bagId) return;
   const url = `proxy.php?source=energielabel&bag_id=${encodeURIComponent(bagId)}`;
   const data = await trackedFetch(url, 'EP-Online Energielabel (proxy)');
-  if (!data || data.error) return;
+  if (!data || data.error) {
+    // Geen energielabel gevonden — toon hint
+    document.getElementById('energielabel').options[0].text = 'Niet geregistreerd';
+    return;
+  }
 
   // Auto-select energielabel
   if (data.energieklasse) {
@@ -1223,7 +1227,7 @@ function runAnalyse() {
   const perceel  = parseFloat(document.getElementById('perceel').value) || null;
   const bouwjaar = parseInt(document.getElementById('bouwjaar').value) || 2000;
   const label    = document.getElementById('energielabel').value;
-  const type     = document.getElementById('type').value;
+  const type     = document.getElementById('type').value || 'tussenwoning';
   const premium  = premiumFactor(activeFeatures, label);
 
   // ── Determine m2 price ──────────────────────────────
@@ -1481,7 +1485,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.5.1</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.5.2</footer>
 
 </body>
 </html>
