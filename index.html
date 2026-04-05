@@ -778,6 +778,7 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
       <div class="field-group">
         <label>Woningtype</label>
         <select id="type">
+          <option value="" disabled selected>Selecteer type...</option>
           <option value="vrijstaand">Vrijstaand</option>
           <option value="2o1kap">2-onder-1-kap</option>
           <option value="hoek">Hoekwoning</option>
@@ -1024,6 +1025,7 @@ async function selectAddress(id, label) {
   fetchCBS(p.buurtcode);
   fetchWOZ(p.nummeraanduiding_id);
   fetchPerceel(p.gekoppeld_perceel);
+  fetchEnergielabel(p.adresseerbaarobject_id);
   fetchWalterCity(p.woonplaatsnaam);
   fetchWalterBuurt(p);
 }
@@ -1095,6 +1097,43 @@ async function fetchPerceel(gekoppeldPerceel) {
   const doc = data.response.docs[0];
   if (doc.kadastrale_grootte && !document.getElementById('perceel').value) {
     document.getElementById('perceel').value = doc.kadastrale_grootte;
+  }
+}
+
+// ── Energielabel (EP-Online via proxy) ────────────────
+async function fetchEnergielabel(bagId) {
+  if (!bagId) return;
+  const url = `proxy.php?source=energielabel&bag_id=${encodeURIComponent(bagId)}`;
+  const data = await trackedFetch(url, 'EP-Online Energielabel (proxy)');
+  if (!data || data.error) return;
+
+  // Auto-select energielabel
+  if (data.energieklasse) {
+    const sel = document.getElementById('energielabel');
+    const labelVal = data.energieklasse.replace('A++++', 'A+++').replace('A+++', 'A+++');
+    for (let opt of sel.options) {
+      if (opt.value === labelVal) { opt.selected = true; break; }
+    }
+  }
+
+  // Auto-select woningtype from gebouwsubtype
+  if (data.gebouwsubtype) {
+    const typeMap = {
+      'Vrijstaande woning': 'vrijstaand',
+      'Twee-onder-een-kapwoning': '2o1kap',
+      'Hoekwoning': 'hoek',
+      'Tussenwoning': 'tussenwoning',
+      'Appartement': 'appartement',
+      'Bovenwoning': 'appartement',
+      'Benedenwoning': 'appartement',
+      'Maisonnette': 'appartement',
+      'Portiekflat': 'appartement',
+      'Galerijflat': 'appartement',
+    };
+    const mapped = typeMap[data.gebouwsubtype];
+    if (mapped) {
+      document.getElementById('type').value = mapped;
+    }
   }
 }
 
@@ -1449,7 +1488,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.4.2</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.5.0</footer>
 
 </body>
 </html>

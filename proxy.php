@@ -49,6 +49,10 @@ switch ($source) {
         echo fetchWOZ($_GET['id'] ?? '');
         break;
 
+    case 'energielabel':
+        echo fetchEnergielabel($_GET['bag_id'] ?? '');
+        break;
+
     case 'claude':
         $input = json_decode(file_get_contents('php://input'), true);
         echo fetchClaudeValuation($input ?? []);
@@ -230,6 +234,61 @@ function fetchWOZ($nummeraanduidingId) {
         'wozobjectnummer' => $obj['wozObjectNummer'] ?? null,
         'grondoppervlakte' => $obj['grondoppervlakte'] ?? null,
         'waarden' => $waarden,
+    ]);
+}
+
+// ── EP-Online Energielabel (gratis API key vereist) ──────────────────────────
+
+function fetchEnergielabel($bagId) {
+    if (!$bagId) {
+        return json_encode(['error' => 'BAG adresseerbaar object ID required']);
+    }
+
+    $apiKey = $_ENV['EPONLINE_API_KEY'] ?? '';
+    if (!$apiKey) {
+        return json_encode(['error' => 'EPONLINE_API_KEY niet geconfigureerd in .env']);
+    }
+
+    $url = "https://public.ep-online.nl/api/v5/PandEnergielabel/AdresseerbaarObject/{$bagId}";
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_HTTPHEADER => [
+            'Authorization: ' . $apiKey,
+            'Accept: application/json',
+        ],
+    ]);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200) {
+        return json_encode(['error' => 'EP-Online API error', 'status' => $httpCode]);
+    }
+
+    $data = json_decode($response, true);
+    if (!$data || empty($data)) {
+        return json_encode(['error' => 'Geen energielabel gevonden']);
+    }
+
+    // Can return multiple labels, take the most recent valid one
+    $label = $data[0] ?? $data;
+    if (is_array($data) && count($data) > 1) {
+        usort($data, function($a, $b) {
+            return strcmp($b['registratiedatum'] ?? '', $a['registratiedatum'] ?? '');
+        });
+        $label = $data[0];
+    }
+
+    return json_encode([
+        'energieklasse' => $label['energieklasse'] ?? null,
+        'energieIndex' => $label['energieIndex'] ?? null,
+        'gebouwtype' => $label['gebouwtype'] ?? null,
+        'gebouwsubtype' => $label['gebouwsubtype'] ?? null,
+        'registratiedatum' => $label['registratiedatum'] ?? null,
+        'geldig_tot' => $label['geldigTot'] ?? null,
     ]);
 }
 
