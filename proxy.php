@@ -45,6 +45,10 @@ switch ($source) {
         );
         break;
 
+    case 'woz':
+        echo fetchWOZ($_GET['id'] ?? '');
+        break;
+
     case 'claude':
         $input = json_decode(file_get_contents('php://input'), true);
         echo fetchClaudeValuation($input ?? []);
@@ -157,11 +161,12 @@ function fetchWalterBuurt($gemeente, $plaats, $buurt, $code) {
     $listings = [];
 
     // Extract property listings using schema.org microdata
-    preg_match_all('/itemprop="name"[^>]*content="([^"]+)"/', $html, $addresses);
-    preg_match_all('/itemprop="url"[^>]*content="([^"]+)"/', $html, $urls);
+    // Note: Walter Living puts content="..." before itemprop="..." in <meta> tags
+    preg_match_all('/content="([^"]+)"\s+itemprop="name"/', $html, $addresses);
+    preg_match_all('/content="([^"]+)"\s+itemprop="url"/', $html, $urls);
 
-    // Extract m2 and postcode from detail spans
-    preg_match_all('/(\d+)m²\s*·\s*[^·]+·\s*(\d{4}[A-Z]{2})/', $html, $details);
+    // Extract m2 and postcode from detail spans (separator is &middot HTML entity)
+    preg_match_all('/(\d+)m²\s*&middot\s*[^&]+&middot\s*(\d{4}[A-Z]{2})/', $html, $details);
 
     // Extract asking prices
     preg_match_all('/Vraagprijs:<\/span>\s*\n?\s*€\s*([\d.]+)/', $html, $prices);
@@ -190,6 +195,41 @@ function fetchWalterBuurt($gemeente, $plaats, $buurt, $code) {
         'code' => $code,
         'listings' => $listings,
         'count' => count($listings),
+    ]);
+}
+
+// ── WOZ Waardeloket API (gratis, geen key) ───────────────────────────────────
+
+function fetchWOZ($nummeraanduidingId) {
+    if (!$nummeraanduidingId) {
+        return json_encode(['error' => 'nummeraanduiding ID required']);
+    }
+
+    $url = "https://api.kadaster.nl/lvwoz/wozwaardeloket-api/v1/wozwaarde/nummeraanduiding/{$nummeraanduidingId}";
+    $json = curlGet($url);
+    $data = json_decode($json, true);
+
+    if (!$data || empty($data['wozWaardeObject'])) {
+        return json_encode(['error' => 'Geen WOZ-data gevonden']);
+    }
+
+    $obj = $data['wozWaardeObject'];
+    $waarden = [];
+    if (!empty($obj['wpiWozWaarden'])) {
+        foreach ($obj['wpiWozWaarden'] as $w) {
+            $waarden[] = [
+                'peildatum' => $w['peildatum'] ?? '',
+                'vastgesteldeWaarde' => $w['vastgesteldeWaarde'] ?? 0,
+            ];
+        }
+        // Sort newest first
+        usort($waarden, function($a, $b) { return strcmp($b['peildatum'], $a['peildatum']); });
+    }
+
+    return json_encode([
+        'wozobjectnummer' => $obj['wozObjectNummer'] ?? null,
+        'grondoppervlakte' => $obj['grondoppervlakte'] ?? null,
+        'waarden' => $waarden,
     ]);
 }
 
@@ -293,6 +333,10 @@ CBS BUURTDATA:
 - % Eengezinswoning: {$d['eengezins_pct']}%
 - Gem. inkomen: €{$d['gem_inkomen']}
 - % Gebouwd na 2000: {$d['bouwjaar_na2000_pct']}%
+
+WOZ-WAARDE (individueel):
+- Meest recente WOZ: €{$d['woz_individueel']}
+- WOZ-historie: {$d['woz_historie']}
 
 VERKOCHTE REFERENTIEWONINGEN IN DE BUURT:
 {$refs}

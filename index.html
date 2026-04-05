@@ -714,7 +714,7 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
 </script>
 
 <header>
-  <div class="logo">Woning<em>Check</em></div>
+  <a href="/" style="text-decoration:none"><div class="logo">Woning<em>Check</em></div></a>
   <div class="tagline">Comparatieve Marktanalyse · Beta</div>
 </header>
 
@@ -726,11 +726,11 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
 
   <div class="field-group autocomplete-wrap">
     <label>Adres zoeken</label>
-    <input type="text" id="adres-zoek" placeholder="Begin te typen, bijv. Saliestraat 2 Wateringen" autocomplete="off">
+    <input type="text" id="adres-zoek" placeholder="Dorpsstraat 10, Amsterdam" autocomplete="off">
     <div class="autocomplete-list" id="adres-list" style="display:none"></div>
   </div>
 
-  <div id="adres-details" style="display:none;margin-top:1rem">
+  <div id="adres-details" style="margin-top:1rem">
     <div style="display:grid;grid-template-columns:1fr auto auto;gap:0.75rem;margin-bottom:1rem">
       <div class="field-group">
         <label>Straat + huisnummer</label>
@@ -803,7 +803,7 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
         <input type="checkbox" id="ai-toggle">
         <span class="ai-slider"></span>
       </label>
-      <span class="ai-toggle-label">AI-analyse inschakelen (Claude — kosten per zoekopdracht)</span>
+      <span class="ai-toggle-label">AI-analyse inschakelen (Claude Sonnet · ~€ 0,01–0,03 per zoekopdracht)</span>
     </div>
 
     <button class="analyse-btn" id="analyseBtn" onclick="startAnalyse()">
@@ -813,7 +813,7 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
 </div>
 
 <!-- Resultaat -->
-<div id="results">
+<div id="results" style="display:block;opacity:0.4" class="empty-state">
 
   <div class="result-header fade-up">
     <div>
@@ -898,6 +898,7 @@ const state = {
   pdok: null,
   bag: null,
   cbs: null,
+  woz: null,
   walter_city: null,
   walter_buurt: null,
 };
@@ -1014,12 +1015,14 @@ async function selectAddress(id, label) {
   document.getElementById('postcode').value = p.postcode || '';
   document.getElementById('plaats').value = p.woonplaatsnaam || '';
 
-  // Show details section
-  document.getElementById('adres-details').style.display = 'block';
+  // Activate results area (still faded until analysis)
+  document.getElementById('results').style.opacity = '0.4';
 
   // Fire parallel data fetches
   fetchBAG(p.postcode, p.huisnummer);
   fetchCBS(p.buurtcode);
+  fetchWOZ(p.nummeraanduiding_id);
+  fetchPerceel(p.gekoppeld_perceel);
   fetchWalterCity(p.woonplaatsnaam);
   fetchWalterBuurt(p);
 }
@@ -1066,6 +1069,32 @@ async function fetchWalterBuurt(pdok) {
   const data = await trackedFetch(url, 'Walter Buurt (proxy)');
   if (!data || data.error) return;
   state.walter_buurt = data;
+}
+
+// ── WOZ Waardeloket (gratis, geen key) ───────────────
+async function fetchWOZ(nummeraanduidingId) {
+  if (!nummeraanduidingId) return;
+  const url = `proxy.php?source=woz&id=${encodeURIComponent(nummeraanduidingId)}`;
+  const data = await trackedFetch(url, 'WOZ Waardeloket (proxy)');
+  if (!data || data.error) return;
+  state.woz = data;
+  // Auto-fill perceel from WOZ if available
+  if (data.grondoppervlakte && !document.getElementById('perceel').value) {
+    document.getElementById('perceel').value = data.grondoppervlakte;
+  }
+}
+
+// ── Perceeloppervlak via locatieserver ───────────────
+async function fetchPerceel(gekoppeldPerceel) {
+  if (!gekoppeldPerceel || !gekoppeldPerceel.length) return;
+  const perceelId = gekoppeldPerceel[0];
+  const url = `https://api.pdok.nl/bzk/locatieserver/search/v3_1/free?q=${encodeURIComponent(perceelId)}&fq=type:perceel&rows=1`;
+  const data = await trackedFetch(url, 'PDOK Perceel');
+  if (!data || !data.response || !data.response.docs.length) return;
+  const doc = data.response.docs[0];
+  if (doc.kadastrale_grootte && !document.getElementById('perceel').value) {
+    document.getElementById('perceel').value = doc.kadastrale_grootte;
+  }
 }
 
 // ── Hulpfuncties ──────────────────────────────────────
@@ -1173,12 +1202,17 @@ function runAnalyse() {
     m2Prijs = state.walter_city.gem_m2_prijs_huidig;
     m2PrijsBron = 'Walter Living (transacties)';
   }
-  // Fallback: CBS WOZ / estimated m2
+  // Fallback: individual WOZ / m2
+  else if (state.woz && state.woz.waarden && state.woz.waarden.length > 0) {
+    const woz = state.woz.waarden[0].vastgesteldeWaarde;
+    m2Prijs = (woz / m2) * 1.10; // WOZ trails market ~10%
+    m2PrijsBron = 'WOZ individueel (gecorrigeerd +10%)';
+  }
+  // Fallback: CBS WOZ average / estimated m2
   else if (state.cbs && state.cbs.GemiddeldeWOZWaardeVanWoningen_36) {
     const woz = state.cbs.GemiddeldeWOZWaardeVanWoningen_36 * 1000;
-    // WOZ is typically 5-15% below market, estimate avg m2 at 110
     m2Prijs = (woz / 110) * 1.10;
-    m2PrijsBron = 'CBS WOZ (geschat)';
+    m2PrijsBron = 'CBS WOZ buurt (geschat)';
   }
   // Last resort
   else {
@@ -1287,6 +1321,19 @@ function runAnalyse() {
     cards.push({ getal: state.pdok.buurtnaam, lbl: 'Buurt' });
   }
 
+  // ── Cost table ──────────────────────────────────────
+  renderCostTable();
+
+  // ── WOZ historie ─────────────────────────────────────
+  if (state.woz && state.woz.waarden && state.woz.waarden.length > 0) {
+    cards.push({ getal: fmt(state.woz.waarden[0].vastgesteldeWaarde), lbl: `WOZ ${state.woz.waarden[0].peildatum.substring(0,4)} (individueel)` });
+    if (state.woz.waarden.length >= 2) {
+      const diff = state.woz.waarden[0].vastgesteldeWaarde - state.woz.waarden[1].vastgesteldeWaarde;
+      const pctDiff = Math.round(diff / state.woz.waarden[1].vastgesteldeWaarde * 100);
+      cards.push({ getal: (pctDiff >= 0 ? '+' : '') + pctDiff + '%', lbl: 'WOZ-stijging t.o.v. vorig jaar' });
+    }
+  }
+
   mg.innerHTML = cards.map(m =>
     `<div class="markt-card">
       <div class="markt-getal">${m.getal}</div>
@@ -1294,12 +1341,11 @@ function runAnalyse() {
     </div>`
   ).join('');
 
-  // ── Cost table ──────────────────────────────────────
-  renderCostTable();
-
   // ── Show results ────────────────────────────────────
   const res = document.getElementById('results');
   res.style.display = 'block';
+  res.style.opacity = '1';
+  res.classList.remove('empty-state');
   res.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   return { estimate, low, high, m2, perceel, bouwjaar, label, type, m2Prijs, m2PrijsBron, premium, straat, postcode, plaats };
@@ -1332,6 +1378,8 @@ async function runAiAnalyse(wisk) {
     gem_inkomen: state.cbs ? (state.cbs.GemiddeldInkomenPerInkomensontvanger_80 * 1000) : 'onbekend',
     bouwjaar_na2000_pct: state.cbs?.BouwjaarVanaf2000_47 || 'onbekend',
     walter_buurt_listings: state.walter_buurt?.listings || [],
+    woz_individueel: state.woz?.waarden?.[0]?.vastgesteldeWaarde || 'onbekend',
+    woz_historie: state.woz?.waarden?.slice(0, 5).map(w => `${w.peildatum.substring(0,4)}: €${w.vastgesteldeWaarde.toLocaleString('nl-NL')}`).join(', ') || 'onbekend',
   };
 
   const start = performance.now();
@@ -1400,7 +1448,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.3.1</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.4.0</footer>
 
 </body>
 </html>
