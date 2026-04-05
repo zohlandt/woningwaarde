@@ -116,13 +116,6 @@ main {
   margin-bottom: 1.25rem;
 }
 
-.address-row {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
 .field-group {
   display: flex;
   flex-direction: column;
@@ -153,6 +146,31 @@ input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--accent);
   background: #fff;
+}
+
+/* ── Autocomplete ── */
+.autocomplete-wrap { position: relative; }
+.autocomplete-list {
+  position: absolute; z-index: 100; top: 100%; left: 0; right: 0;
+  background: var(--card); border: 1.5px solid var(--border); border-top: none;
+  border-radius: 0 0 2px 2px; max-height: 240px; overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.autocomplete-list div {
+  padding: 0.6rem 0.85rem; cursor: pointer;
+  font-family: 'DM Mono', monospace; font-size: 0.85rem;
+  border-bottom: 1px solid var(--cream);
+}
+.autocomplete-list div:hover, .autocomplete-list div.active {
+  background: var(--cream); color: var(--accent);
+}
+
+/* ── Auto-fill badge ── */
+.autofill-badge {
+  display: inline-block; font-size: 0.6rem; font-weight: 700;
+  background: var(--success-bg); color: var(--success);
+  padding: 1px 6px; border-radius: 2px; margin-left: 0.4rem;
+  letter-spacing: 0.05em; text-transform: uppercase;
 }
 
 .corrections-grid {
@@ -252,9 +270,7 @@ input:focus, select:focus, textarea:focus {
   font-family: 'DM Mono', monospace;
 }
 
-.waarde-box {
-  text-align: right;
-}
+.waarde-box { text-align: right; }
 
 .waarde-label {
   font-size: 0.65rem;
@@ -355,10 +371,9 @@ input:focus, select:focus, textarea:focus {
   background: var(--border);
 }
 
-.ref-card.sim-5::before { background: var(--accent); }
-.ref-card.sim-4::before { background: #d4600f; }
-.ref-card.sim-3::before { background: #b8860b; }
-.ref-card.sim-2::before { background: var(--border); }
+.ref-card.st-boven::before { background: var(--success); }
+.ref-card.st-rond::before { background: var(--info); }
+.ref-card.st-onder::before { background: var(--warn); }
 
 .ref-addr {
   font-size: 0.88rem;
@@ -504,34 +519,81 @@ input:focus, select:focus, textarea:focus {
   color: var(--info);
 }
 
+.alert-success {
+  background: var(--success-bg);
+  border-left-color: var(--success);
+  color: var(--success);
+}
+
+/* ── Cost tracker ── */
+.cost-panel {
+  margin-top: 1.5rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+}
+.cost-panel summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.5rem 0;
+}
+.cost-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+.cost-table th, .cost-table td {
+  text-align: left;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--cream);
+  font-size: 0.72rem;
+}
+.cost-table th {
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.cost-ok { color: var(--success); }
+.cost-err { color: var(--accent); }
+
 /* ── Animaties ── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.fade-up {
-  animation: fadeUp 0.4s ease forwards;
-}
-
+.fade-up { animation: fadeUp 0.4s ease forwards; }
 .fade-up-delay-1 { animation-delay: 0.05s; opacity: 0; }
 .fade-up-delay-2 { animation-delay: 0.12s; opacity: 0; }
 .fade-up-delay-3 { animation-delay: 0.2s; opacity: 0; }
 .fade-up-delay-4 { animation-delay: 0.28s; opacity: 0; }
 .fade-up-delay-5 { animation-delay: 0.36s; opacity: 0; }
 
-/* ── Sim dots ── */
-.sim-wrap { display: flex; align-items: center; gap: 6px; margin-top: 0.35rem; }
-.sdot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); }
-.sdot.on { background: var(--accent); }
-.sim-label { font-size: 0.68rem; color: var(--muted); }
+/* ── Loading skeleton ── */
+.skeleton {
+  background: linear-gradient(90deg, var(--cream) 25%, var(--paper) 50%, var(--cream) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 2px;
+  height: 1.2rem;
+  margin: 0.25rem 0;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 
 /* ── Responsive ── */
 @media (max-width: 640px) {
-  .address-row { grid-template-columns: 1fr; }
   .corrections-grid { grid-template-columns: 1fr 1fr; }
   .refs-grid { grid-template-columns: 1fr; }
   .markt-grid { grid-template-columns: 1fr 1fr; }
+  .result-header { flex-direction: column; gap: 1rem; }
+  .waarde-box { text-align: left; }
 }
 </style>
 </head>
@@ -546,7 +608,6 @@ input:focus, select:focus, textarea:focus {
 <script>
 (function(){
   const HASH = '4e0755d629a8057deabcfd8b3df292087cb063b3324a553e6323c18489b223bc';
-  const DAYS = 7;
   const c = document.cookie.match(/pw_ok=1/);
   if(c){document.getElementById('pw-gate').classList.add('hidden');document.body.classList.remove('locked');}
 })();
@@ -574,84 +635,86 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
 
 <!-- Invoer -->
 <div class="input-section">
-  <div class="section-label">Stap 1 — Doelwoning</div>
+  <div class="section-label">Stap 1 — Zoek adres</div>
 
-  <div class="address-row">
-    <div class="field-group">
-      <label>Straat + huisnummer</label>
-      <input type="text" id="straat" placeholder="bijv. Saliestraat 2" value="Saliestraat 2">
-    </div>
-    <div class="field-group">
-      <label>Postcode</label>
-      <input type="text" id="postcode" placeholder="2292 CR" value="2292 CR" style="width:110px">
-    </div>
-    <div class="field-group">
-      <label>Plaats</label>
-      <input type="text" id="plaats" placeholder="Wateringen" value="Wateringen" style="width:140px">
-    </div>
+  <div class="field-group autocomplete-wrap">
+    <label>Adres zoeken</label>
+    <input type="text" id="adres-zoek" placeholder="Begin te typen, bijv. Saliestraat 2 Wateringen" autocomplete="off">
+    <div class="autocomplete-list" id="adres-list" style="display:none"></div>
   </div>
 
-  <div class="section-label" style="margin-top:1.25rem">Stap 2 — Bekende kenmerken (optioneel — overschrijft openbare data)</div>
+  <div id="adres-details" style="display:none;margin-top:1rem">
+    <div style="display:grid;grid-template-columns:1fr auto auto;gap:0.75rem;margin-bottom:1rem">
+      <div class="field-group">
+        <label>Straat + huisnummer</label>
+        <input type="text" id="straat" readonly>
+      </div>
+      <div class="field-group">
+        <label>Postcode</label>
+        <input type="text" id="postcode" readonly style="width:110px">
+      </div>
+      <div class="field-group">
+        <label>Plaats</label>
+        <input type="text" id="plaats" readonly style="width:140px">
+      </div>
+    </div>
 
-  <div class="corrections-grid">
-    <div class="field-group">
-      <label>Woonoppervlak (m²)</label>
-      <input type="number" id="m2" placeholder="bijv. 213" value="213">
+    <div class="section-label" style="margin-top:1.25rem">Stap 2 — Woningkenmerken <span class="autofill-badge" id="bag-badge" style="display:none">BAG</span></div>
+
+    <div class="corrections-grid">
+      <div class="field-group">
+        <label>Woonoppervlak (m2)</label>
+        <input type="number" id="m2" placeholder="wordt opgehaald...">
+      </div>
+      <div class="field-group">
+        <label>Perceeloppervlak (m2)</label>
+        <input type="number" id="perceel" placeholder="optioneel">
+      </div>
+      <div class="field-group">
+        <label>Bouwjaar</label>
+        <input type="number" id="bouwjaar" placeholder="wordt opgehaald...">
+      </div>
     </div>
-    <div class="field-group">
-      <label>Perceeloppervlak (m²)</label>
-      <input type="number" id="perceel" placeholder="bijv. 265" value="265">
+
+    <div class="corrections-grid-2">
+      <div class="field-group">
+        <label>Energielabel <a href="https://www.ep-online.nl/Energielabel/Search" target="_blank" style="font-size:0.6rem;color:var(--accent);text-decoration:none">(opzoeken)</a></label>
+        <select id="energielabel">
+          <option value="">Onbekend</option>
+          <option value="G">G</option><option value="F">F</option><option value="E">E</option>
+          <option value="D">D</option><option value="C">C</option><option value="B">B</option>
+          <option value="A">A</option><option value="A+">A+</option>
+          <option value="A++">A++</option><option value="A+++">A+++</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Woningtype</label>
+        <select id="type">
+          <option value="vrijstaand">Vrijstaand</option>
+          <option value="2o1kap">2-onder-1-kap</option>
+          <option value="hoek">Hoekwoning</option>
+          <option value="tussenwoning">Tussenwoning</option>
+          <option value="appartement">Appartement</option>
+        </select>
+      </div>
     </div>
-    <div class="field-group">
-      <label>Bouwjaar</label>
-      <input type="number" id="bouwjaar" placeholder="bijv. 2006" value="2006">
+
+    <div class="section-label" style="margin-top:0.25rem">Stap 3 — Bijzonderheden</div>
+    <div class="toggle-row" id="toggles">
+      <button class="toggle-btn" data-key="zwembad">Zwembad</button>
+      <button class="toggle-btn" data-key="warmtepomp">Warmtepomp</button>
+      <button class="toggle-btn" data-key="gasloos">Gasloos</button>
+      <button class="toggle-btn" data-key="zonnepanelen">Zonnepanelen</button>
+      <button class="toggle-btn" data-key="garage">Garage</button>
+      <button class="toggle-btn" data-key="waterligging">Waterligging</button>
+      <button class="toggle-btn" data-key="airco">Airco</button>
+      <button class="toggle-btn" data-key="dakkapel">Dakkapel</button>
     </div>
+
+    <button class="analyse-btn" id="analyseBtn" onclick="startAnalyse()">
+      Start CMA-analyse
+    </button>
   </div>
-
-  <div class="corrections-grid-2">
-    <div class="field-group">
-      <label>Energielabel</label>
-      <select id="energielabel">
-        <option value="">Onbekend</option>
-        <option value="G">G</option>
-        <option value="F">F</option>
-        <option value="E">E</option>
-        <option value="D">D</option>
-        <option value="C">C</option>
-        <option value="B">B</option>
-        <option value="A" selected>A</option>
-        <option value="A+">A+</option>
-        <option value="A++">A++</option>
-        <option value="A+++">A+++</option>
-      </select>
-    </div>
-    <div class="field-group">
-      <label>Woningtype</label>
-      <select id="type">
-        <option value="vrijstaand" selected>Vrijstaand</option>
-        <option value="2o1kap">2-onder-1-kap</option>
-        <option value="hoek">Hoekwoning</option>
-        <option value="tussenwoning">Tussenwoning</option>
-        <option value="appartement">Appartement</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="section-label" style="margin-top:0.25rem">Stap 3 — Bijzonderheden</div>
-  <div class="toggle-row" id="toggles">
-    <button class="toggle-btn" data-key="zwembad">🏊 Zwembad</button>
-    <button class="toggle-btn active" data-key="warmtepomp">♻️ Warmtepomp</button>
-    <button class="toggle-btn active" data-key="gasloos">⚡ Gasloos</button>
-    <button class="toggle-btn active" data-key="zonnepanelen">☀️ Zonnepanelen</button>
-    <button class="toggle-btn" data-key="garage">🚗 Garage</button>
-    <button class="toggle-btn" data-key="waterligging">🌊 Waterligging</button>
-    <button class="toggle-btn" data-key="airco">❄️ Airco</button>
-    <button class="toggle-btn" data-key="dakkapel">🏠 Dakkapel</button>
-  </div>
-
-  <button class="analyse-btn" id="analyseBtn" onclick="startAnalyse()">
-    ▶ Start CMA-analyse
-  </button>
 </div>
 
 <!-- Resultaat -->
@@ -671,7 +734,7 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
 
   <!-- Bandbreedte -->
   <div class="band-wrap fade-up fade-up-delay-1">
-    <div class="section-label" style="margin-bottom:0.25rem">Waardebandbreedtie</div>
+    <div class="section-label" style="margin-bottom:0.25rem">Waardebandbreedte</div>
     <div class="band-track">
       <div class="band-fill" id="band-fill" style="width:60%"></div>
       <div class="band-marker" id="band-marker" style="left:60%"></div>
@@ -686,8 +749,8 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
   <!-- Data alerts -->
   <div id="alerts-zone"></div>
 
-  <!-- Referentiepanden -->
-  <div class="section-label fade-up fade-up-delay-2" style="margin-bottom:0.75rem">Referentiepanden</div>
+  <!-- Referentiepanden (Walter) -->
+  <div class="section-label fade-up fade-up-delay-2" style="margin-bottom:0.75rem">Verkochte woningen in de buurt <span class="autofill-badge">WALTER</span></div>
   <div class="refs-grid fade-up fade-up-delay-2" id="refs-grid"></div>
 
   <!-- Correctiefactoren -->
@@ -702,10 +765,21 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
 
   <!-- Disclaimer -->
   <div class="disclaimer fade-up fade-up-delay-5">
-    ⚠ Indicatieve analyse op basis van openbaar beschikbare data (Funda, Walter Living, Huispedia, BAG/Kadaster).
-    Werkelijke koopsommen zijn niet openbaar — bandbreedte-schattingen zijn gebruikt op basis van vraagprijzen en verkoopstatus.
+    Indicatieve analyse op basis van openbaar beschikbare data (PDOK/BAG, CBS, Walter Living).
+    Geen individuele transactieprijzen beschikbaar — waarde is geschat op basis van CBS WOZ-gemiddelden,
+    Walter Living marktstatistieken en correctiefactoren.
     Voor een bindende waardebepaling is taxatie door een NVM/NRVT-taxateur vereist. Geen rechten ontleenbaar.
   </div>
+
+  <!-- Kostentracker -->
+  <details class="cost-panel fade-up fade-up-delay-5">
+    <summary>API-aanroepen &amp; kosten</summary>
+    <table class="cost-table" id="cost-table">
+      <thead><tr><th>API</th><th>Status</th><th>Duur</th><th>Kosten</th></tr></thead>
+      <tbody id="cost-body"></tbody>
+      <tfoot><tr><td colspan="3" style="font-weight:600">Totaal</td><td id="cost-total" style="font-weight:600">€ 0,00</td></tr></tfoot>
+    </table>
+  </details>
 
 </div>
 
@@ -713,8 +787,18 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
 
 <script>
 // ── State ──────────────────────────────────────────────
-const activeFeatures = new Set(['warmtepomp','gasloos','zonnepanelen']);
+const state = {
+  pdok: null,
+  bag: null,
+  cbs: null,
+  walter_city: null,
+  walter_buurt: null,
+};
 
+const apiLog = [];
+const activeFeatures = new Set();
+
+// ── Toggle buttons ────────────────────────────────────
 document.querySelectorAll('.toggle-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const k = btn.dataset.key;
@@ -723,104 +807,190 @@ document.querySelectorAll('.toggle-btn').forEach(btn => {
   });
 });
 
-// ── Database referentiepanden per buurt ───────────────
-const DB = {
-  wateringen_essellanden: {
-    refs: [
-      { addr: 'Saliestraat 1', meta: '203 m² · 2006 · 2-o-1-kap · tuin ZW + water · airco · garage', status: 'koop', price: 850000, m2: 203, sim: 5, note: 'Naast de deur, zelfde bouwjaar, wateruitzicht' },
-      { addr: 'Zonnebloemstraat 29', meta: '198 m² · 2006 · Essellanden', status: 'boven', price: 850000, m2: 198, sim: 3, note: 'Vergelijkbare grootte' },
-      { addr: 'Pepermuntstraat 28', meta: '173 m² · waterligging · Essellanden', status: 'boven', price: 825000, m2: 173, sim: 3, note: 'Kleiner, waterligging premium' },
-      { addr: 'Bovendijk 93', meta: '203 m² · 2000 · A+ · perceel 396 m²', status: 'rond', price: 800000, m2: 203, sim: 2, note: 'Vergelijkbaar m², groter perceel' },
-      { addr: 'Pepermuntstraat 35', meta: '177 m² · 2006 · tuin ZO + water', status: 'onder', price: 875000, m2: 177, sim: 3, note: 'Zelfde stratenplan, waterligging' },
-      { addr: 'Bloemenlaan 12', meta: '154 m² · Essellanden', status: 'boven', price: 710000, m2: 154, sim: 2, note: 'Kleiner, zelfde wijk' },
-    ],
-    markt: [
-      { getal: '€ 5.071/m²', lbl: 'Gem. m²-prijs Essellanden' },
-      { getal: '15–17 dgn', lbl: 'Gem. verkooptijd wijk' },
-      { getal: '+6,9%', lbl: 'Waardestijging 12 mnd' },
-    ]
-  },
-  wateringen_pepermuntstraat: {
-    refs: [
-      { addr: 'Pepermuntstraat 35', meta: '177 m² · 2006 · 2-o-1-kap · water', status: 'onder', price: 875000, m2: 177, sim: 5, note: 'Zelfde straat, 2006, waterligging' },
-      { addr: 'Pepermuntstraat 3', meta: '154 m² · 2006 · 5 slpk', status: 'rond', price: 720000, m2: 154, sim: 4, note: 'Zelfde straat en bouwjaar' },
-      { addr: 'Pepermuntstraat 28', meta: '173 m² · waterligging', status: 'boven', price: 825000, m2: 173, sim: 4, note: 'Zelfde straat' },
-      { addr: 'Bovendijk 127', meta: '164 m² · 2013 · A+++ · perceel 770 m²', status: 'onder', price: 995000, m2: 164, sim: 2, note: 'Nieuwer, groter perceel, A+++' },
-      { addr: 'Bovendijk 141', meta: '172 m² · Essellanden', status: 'onder', price: 835000, m2: 172, sim: 3, note: 'Vergelijkbaar m²' },
-      { addr: 'Radijsstraat 23', meta: '148 m² · Essellanden', status: 'boven', price: 685000, m2: 148, sim: 2, note: 'Kleiner, zelfde wijk' },
-    ],
-    markt: [
-      { getal: '€ 4.679/m²', lbl: 'Gem. m²-prijs Pepermuntstraat' },
-      { getal: '15 dgn', lbl: 'Gem. verkooptijd' },
-      { getal: '+6,9%', lbl: 'Waardestijging 12 mnd' },
-    ]
-  },
-  default: {
-    refs: [
-      { addr: 'Vergelijkbaar pand A', meta: '~gelijk m² · zelfde buurt', status: 'rond', price: 750000, m2: 160, sim: 3, note: 'Automatisch geselecteerd' },
-      { addr: 'Vergelijkbaar pand B', meta: '~gelijk m² · zelfde buurt', status: 'boven', price: 780000, m2: 168, sim: 3, note: 'Automatisch geselecteerd' },
-      { addr: 'Vergelijkbaar pand C', meta: 'Iets kleiner · buurt', status: 'rond', price: 690000, m2: 145, sim: 2, note: 'Kleinere vergelijker' },
-    ],
-    markt: [
-      { getal: '€ 4.711/m²', lbl: 'Gem. m²-prijs Wateringen' },
-      { getal: '15–17 dgn', lbl: 'Gem. verkooptijd' },
-      { getal: '+4–7%', lbl: 'Verwachte stijging 2025' },
-    ]
+// ── Tracked fetch ─────────────────────────────────────
+async function trackedFetch(url, label, cost = 0) {
+  const start = performance.now();
+  const entry = { label, url, status: 'pending', duration: 0, cost };
+  apiLog.push(entry);
+  try {
+    const resp = await fetch(url);
+    entry.duration = Math.round(performance.now() - start);
+    entry.status = resp.ok ? 'ok' : `${resp.status}`;
+    const data = await resp.json();
+    return data;
+  } catch (e) {
+    entry.duration = Math.round(performance.now() - start);
+    entry.status = 'error';
+    return null;
   }
-};
+}
 
-// ── Hulpfuncties ───────────────────────────────────────
+function renderCostTable() {
+  const tbody = document.getElementById('cost-body');
+  tbody.innerHTML = apiLog.map(e => `
+    <tr>
+      <td>${e.label}</td>
+      <td class="${e.status === 'ok' ? 'cost-ok' : 'cost-err'}">${e.status}</td>
+      <td>${e.duration}ms</td>
+      <td>${fmt2(e.cost)}</td>
+    </tr>
+  `).join('');
+  const total = apiLog.reduce((s, e) => s + e.cost, 0);
+  document.getElementById('cost-total').textContent = fmt2(total);
+}
+
+// ── Adres autocomplete (PDOK) ─────────────────────────
+let debounceTimer = null;
+const adresInput = document.getElementById('adres-zoek');
+const adresList = document.getElementById('adres-list');
+
+adresInput.addEventListener('input', () => {
+  clearTimeout(debounceTimer);
+  const q = adresInput.value.trim();
+  if (q.length < 3) { adresList.style.display = 'none'; return; }
+  debounceTimer = setTimeout(() => suggestAddress(q), 300);
+});
+
+adresInput.addEventListener('keydown', e => {
+  if (e.key === 'Escape') adresList.style.display = 'none';
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.autocomplete-wrap')) adresList.style.display = 'none';
+});
+
+async function suggestAddress(q) {
+  const url = `https://api.pdok.nl/bzk/locatieserver/search/v3_1/suggest?q=${encodeURIComponent(q)}&fq=type:adres&rows=7`;
+  const data = await trackedFetch(url, 'PDOK Suggest');
+  if (!data || !data.response || !data.response.docs.length) {
+    adresList.style.display = 'none';
+    return;
+  }
+
+  adresList.innerHTML = data.response.docs.map(d =>
+    `<div data-id="${d.id}">${d.weergavenaam}</div>`
+  ).join('');
+  adresList.style.display = 'block';
+
+  adresList.querySelectorAll('div').forEach(div => {
+    div.addEventListener('click', () => selectAddress(div.dataset.id, div.textContent));
+  });
+}
+
+async function selectAddress(id, label) {
+  adresInput.value = label;
+  adresList.style.display = 'none';
+
+  // Lookup full address details
+  const url = `https://api.pdok.nl/bzk/locatieserver/search/v3_1/lookup?id=${encodeURIComponent(id)}`;
+  const data = await trackedFetch(url, 'PDOK Lookup');
+  if (!data || !data.response || !data.response.docs.length) return;
+
+  state.pdok = data.response.docs[0];
+  const p = state.pdok;
+
+  // Fill address fields
+  document.getElementById('straat').value = `${p.straatnaam} ${p.huisnummer}${p.huis_nlt && p.huis_nlt !== String(p.huisnummer) ? '' : ''}`;
+  document.getElementById('postcode').value = p.postcode || '';
+  document.getElementById('plaats').value = p.woonplaatsnaam || '';
+
+  // Show details section
+  document.getElementById('adres-details').style.display = 'block';
+
+  // Fire parallel data fetches
+  fetchBAG(p.postcode, p.huisnummer);
+  fetchCBS(p.buurtcode);
+  fetchWalterCity(p.woonplaatsnaam);
+  fetchWalterBuurt(p);
+}
+
+// ── BAG data (via proxy) ──────────────────────────────
+async function fetchBAG(postcode, huisnummer) {
+  const url = `proxy.php?source=bag&postcode=${encodeURIComponent(postcode)}&huisnummer=${huisnummer}`;
+  const data = await trackedFetch(url, 'BAG WFS (proxy)');
+  if (!data || data.error) return;
+
+  state.bag = data;
+  if (data.oppervlakte) document.getElementById('m2').value = data.oppervlakte;
+  if (data.bouwjaar) document.getElementById('bouwjaar').value = data.bouwjaar;
+  document.getElementById('bag-badge').style.display = 'inline-block';
+}
+
+// ── CBS buurtdata ─────────────────────────────────────
+async function fetchCBS(buurtcode) {
+  if (!buurtcode) return;
+  const url = `https://opendata.cbs.nl/ODataApi/odata/85618NED/TypedDataSet?$filter=substringof('${buurtcode}',WijkenEnBuurten)&$top=1`;
+  const data = await trackedFetch(url, 'CBS Kerncijfers');
+  if (!data || !data.value || !data.value.length) return;
+  state.cbs = data.value[0];
+}
+
+// ── Walter Living city ───────────────────────────────
+async function fetchWalterCity(plaats) {
+  if (!plaats) return;
+  const city = plaats.toLowerCase().replace(/\s+/g, '-');
+  const url = `proxy.php?source=walter_city&city=${encodeURIComponent(city)}`;
+  const data = await trackedFetch(url, 'Walter City (proxy)');
+  if (!data || data.error) return;
+  state.walter_city = data;
+}
+
+// ── Walter Living buurt ──────────────────────────────
+async function fetchWalterBuurt(pdok) {
+  if (!pdok.gemeentenaam || !pdok.woonplaatsnaam || !pdok.buurtnaam || !pdok.buurtcode) return;
+  const url = `proxy.php?source=walter_buurt`
+    + `&gemeente=${encodeURIComponent(pdok.gemeentenaam.toLowerCase())}`
+    + `&plaats=${encodeURIComponent(pdok.woonplaatsnaam.toLowerCase())}`
+    + `&buurt=${encodeURIComponent(pdok.buurtnaam.toLowerCase().replace(/\s+/g, '-'))}`
+    + `&code=${encodeURIComponent(pdok.buurtcode)}`;
+  const data = await trackedFetch(url, 'Walter Buurt (proxy)');
+  if (!data || data.error) return;
+  state.walter_buurt = data;
+}
+
+// ── Hulpfuncties ──────────────────────────────────────
 function fmt(n) { return '€ ' + Math.round(n).toLocaleString('nl-NL'); }
 function fmtK(n) { return '€ ' + Math.round(n/1000) + 'K'; }
+function fmt2(n) { return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(n); }
 
 function statusClass(s) {
   if (s === 'boven') return 'st-boven';
-  if (s === 'rond')  return 'st-rond';
+  if (s === 'rond') return 'st-rond';
   if (s === 'onder') return 'st-onder';
   return 'st-koop';
 }
 function statusLabel(s) {
-  if (s === 'boven') return '↑ Boven vraagprijs';
-  if (s === 'rond')  return '→ Rond vraagprijs';
-  if (s === 'onder') return '↓ Onder vraagprijs';
-  return '⊙ Te koop';
+  if (s === 'boven') return 'Boven vraagprijs';
+  if (s === 'rond') return 'Rond vraagprijs';
+  if (s === 'onder') return 'Onder vraagprijs';
+  return 'Te koop';
 }
 
-function simDots(n) {
-  let h = '<div class="sim-wrap">';
-  for (let i=1;i<=5;i++) h += `<div class="sdot${i<=n?' on':''}"></div>`;
-  h += `<span class="sim-label">gelijkenis</span></div>`;
-  return h;
-}
-
-// ── Correctiebedragen ──────────────────────────────────
+// ── Correctiebedragen ─────────────────────────────────
 function getCorrections(features, type, label, m2, perceel) {
   const rows = [];
-
-  if (features.has('zwembad'))     rows.push({ key: 'Zwembad', val: '+€ 25.000–40.000', cls: 'corr-pos' });
-  if (features.has('waterligging'))rows.push({ key: 'Waterligging', val: '+€ 15.000–25.000', cls: 'corr-pos' });
-  if (features.has('warmtepomp'))  rows.push({ key: 'Warmtepomp', val: '+€ 8.000–15.000', cls: 'corr-pos' });
-  if (features.has('gasloos'))     rows.push({ key: 'Volledig gasloos', val: '+€ 5.000–12.000', cls: 'corr-pos' });
-  if (features.has('zonnepanelen'))rows.push({ key: 'Zonnepanelen', val: '+€ 4.000–10.000', cls: 'corr-pos' });
-  if (features.has('garage'))      rows.push({ key: 'Garage', val: '+€ 10.000–20.000', cls: 'corr-pos' });
-  if (features.has('airco'))       rows.push({ key: 'Airconditioning', val: '+€ 3.000–7.000', cls: 'corr-pos' });
-  if (features.has('dakkapel'))    rows.push({ key: 'Dakkapel', val: '+€ 5.000–10.000', cls: 'corr-pos' });
+  if (features.has('zwembad'))      rows.push({ key: 'Zwembad', val: '+€ 25.000–40.000', cls: 'corr-pos' });
+  if (features.has('waterligging')) rows.push({ key: 'Waterligging', val: '+€ 15.000–25.000', cls: 'corr-pos' });
+  if (features.has('warmtepomp'))   rows.push({ key: 'Warmtepomp', val: '+€ 8.000–15.000', cls: 'corr-pos' });
+  if (features.has('gasloos'))      rows.push({ key: 'Volledig gasloos', val: '+€ 5.000–12.000', cls: 'corr-pos' });
+  if (features.has('zonnepanelen')) rows.push({ key: 'Zonnepanelen', val: '+€ 4.000–10.000', cls: 'corr-pos' });
+  if (features.has('garage'))       rows.push({ key: 'Garage', val: '+€ 10.000–20.000', cls: 'corr-pos' });
+  if (features.has('airco'))        rows.push({ key: 'Airconditioning', val: '+€ 3.000–7.000', cls: 'corr-pos' });
+  if (features.has('dakkapel'))     rows.push({ key: 'Dakkapel', val: '+€ 5.000–10.000', cls: 'corr-pos' });
 
   if (label === 'A+++' || label === 'A++') rows.push({ key: `Energielabel ${label}`, val: '+€ 15.000–25.000', cls: 'corr-pos' });
   else if (label === 'A+')  rows.push({ key: 'Energielabel A+', val: '+€ 8.000–15.000', cls: 'corr-pos' });
   else if (label === 'A')   rows.push({ key: 'Energielabel A', val: '+€ 5.000–10.000', cls: 'corr-pos' });
   else if (label === 'B')   rows.push({ key: 'Energielabel B', val: '+€ 0–5.000', cls: 'corr-pos' });
-  else if (label === 'C' || label === 'D') rows.push({ key: `Energielabel ${label}`, val: '−€ 3.000–8.000', cls: 'corr-neg' });
-  else if (label === 'E' || label === 'F' || label === 'G') rows.push({ key: `Energielabel ${label}`, val: '−€ 10.000–25.000', cls: 'corr-neg' });
+  else if (label === 'C' || label === 'D') rows.push({ key: `Energielabel ${label}`, val: '-€ 3.000–8.000', cls: 'corr-neg' });
+  else if (['E','F','G'].includes(label)) rows.push({ key: `Energielabel ${label}`, val: '-€ 10.000–25.000', cls: 'corr-neg' });
 
-  if (perceel && perceel > 400) rows.push({ key: `Groot perceel (${perceel} m²)`, val: '+€ 10.000–20.000', cls: 'corr-pos' });
-  if (perceel && perceel < 200) rows.push({ key: `Klein perceel (${perceel} m²)`, val: '−€ 5.000–15.000', cls: 'corr-neg' });
-
+  if (perceel && perceel > 400) rows.push({ key: `Groot perceel (${perceel} m2)`, val: '+€ 10.000–20.000', cls: 'corr-pos' });
+  if (perceel && perceel < 200) rows.push({ key: `Klein perceel (${perceel} m2)`, val: '-€ 5.000–15.000', cls: 'corr-neg' });
   if (rows.length === 0) rows.push({ key: 'Geen bijzonderheden opgegeven', val: 'neutraal', cls: 'corr-neu' });
   return rows;
 }
 
-// ── Premium berekening ─────────────────────────────────
 function premiumFactor(features, label) {
   let p = 0;
   if (features.has('zwembad'))      p += 32000;
@@ -836,100 +1006,110 @@ function premiumFactor(features, label) {
   else if (label === 'A+')  p += 11000;
   else if (label === 'A')   p += 7000;
   else if (label === 'C' || label === 'D') p -= 5000;
-  else if (label && ['E','F','G'].includes(label[0])) p -= 15000;
+  else if (['E','F','G'].includes(label)) p -= 15000;
   return p;
 }
 
-// ── Detecteer dataset ──────────────────────────────────
-function detectDataset(straat, postcode) {
-  const s = (straat || '').toLowerCase();
-  const p = (postcode || '').replace(/\s/g,'').toLowerCase();
-  if (s.includes('pepermuntstraat') || p === '2292ct') return 'wateringen_pepermuntstraat';
-  if (p.startsWith('2292') || p.startsWith('2291') || s.includes('salie') || s.includes('bovendijk') || s.includes('radijs') || s.includes('komkom') || s.includes('bloemen') || s.includes('zonnebloe') || s.includes('perenpad')) return 'wateringen_essellanden';
-  return 'default';
-}
-
-// ── Analyse ────────────────────────────────────────────
+// ── Analyse ───────────────────────────────────────────
 function startAnalyse() {
   const btn = document.getElementById('analyseBtn');
   btn.classList.add('loading');
-  btn.textContent = '⏳ Analyseren…';
+  btn.textContent = 'Analyseren...';
 
+  // Small delay for UX
   setTimeout(() => {
     runAnalyse();
     btn.classList.remove('loading');
-    btn.textContent = '↺ Opnieuw analyseren';
-  }, 900);
+    btn.textContent = 'Opnieuw analyseren';
+  }, 300);
 }
 
 function runAnalyse() {
   const straat   = document.getElementById('straat').value.trim();
   const postcode = document.getElementById('postcode').value.trim();
   const plaats   = document.getElementById('plaats').value.trim();
-  const m2       = parseFloat(document.getElementById('m2').value) || 150;
+  const m2       = parseFloat(document.getElementById('m2').value) || 120;
   const perceel  = parseFloat(document.getElementById('perceel').value) || null;
   const bouwjaar = parseInt(document.getElementById('bouwjaar').value) || 2000;
   const label    = document.getElementById('energielabel').value;
   const type     = document.getElementById('type').value;
+  const premium  = premiumFactor(activeFeatures, label);
 
-  const dsKey = detectDataset(straat, postcode);
-  const ds    = DB[dsKey];
-  const refs  = ds.refs;
-  const markt = ds.markt;
+  // ── Determine m2 price ──────────────────────────────
+  let m2Prijs = 0;
+  let m2PrijsBron = '';
 
-  // Gewogen m²-prijs
-  const sims      = refs.map(r => r.sim);
-  const totalSim  = sims.reduce((a,b) => a+b, 0);
-  const wm2       = refs.reduce((acc,r) => acc + (r.price/r.m2)*r.sim, 0) / totalSim;
-  const basePrijs = wm2 * m2;
-  const premium   = premiumFactor(activeFeatures, label);
-  const estimate  = Math.round((basePrijs + premium) / 1000) * 1000;
-  const low       = Math.round(estimate * 0.925 / 1000) * 1000;
-  const high      = Math.round(estimate * 1.09  / 1000) * 1000;
+  // Best source: Walter Living m2 price (actual transactions)
+  if (state.walter_city && state.walter_city.gem_m2_prijs_huidig) {
+    m2Prijs = state.walter_city.gem_m2_prijs_huidig;
+    m2PrijsBron = 'Walter Living (transacties)';
+  }
+  // Fallback: CBS WOZ / estimated m2
+  else if (state.cbs && state.cbs.GemiddeldeWOZWaardeVanWoningen_36) {
+    const woz = state.cbs.GemiddeldeWOZWaardeVanWoningen_36 * 1000;
+    // WOZ is typically 5-15% below market, estimate avg m2 at 110
+    m2Prijs = (woz / 110) * 1.10;
+    m2PrijsBron = 'CBS WOZ (geschat)';
+  }
+  // Last resort
+  else {
+    m2Prijs = 4500;
+    m2PrijsBron = 'Landelijk gemiddelde (fallback)';
+  }
 
-  // Header
+  const basePrijs = m2Prijs * m2;
+  const estimate = Math.round((basePrijs + premium) / 1000) * 1000;
+  const low  = Math.round(estimate * 0.92 / 1000) * 1000;
+  const high = Math.round(estimate * 1.09 / 1000) * 1000;
+
+  // ── Header ──────────────────────────────────────────
   document.getElementById('res-adres').textContent = `${straat}, ${plaats}`;
-  document.getElementById('res-sub').textContent   = `${postcode} · ${m2} m² · bouwjaar ${bouwjaar} · label ${label||'?'} · ${type}`;
+  document.getElementById('res-sub').textContent = `${postcode} · ${m2} m2 · bouwjaar ${bouwjaar} · label ${label||'?'} · ${type}`;
   document.getElementById('res-waarde').textContent = fmt(estimate);
-  document.getElementById('res-range').textContent  = `${fmtK(low)} – ${fmtK(high)}`;
+  document.getElementById('res-range').textContent = `${fmtK(low)} – ${fmtK(high)}`;
 
-  // Band
+  // ── Band ────────────────────────────────────────────
   const pct = Math.round((estimate - low) / (high - low) * 100);
-  document.getElementById('band-fill').style.width   = pct + '%';
-  document.getElementById('band-marker').style.left  = pct + '%';
-  document.getElementById('band-low').textContent    = fmtK(low);
+  document.getElementById('band-fill').style.width = pct + '%';
+  document.getElementById('band-marker').style.left = pct + '%';
+  document.getElementById('band-low').textContent = fmtK(low);
   document.getElementById('band-center').textContent = fmtK(estimate);
-  document.getElementById('band-high').textContent   = fmtK(high);
+  document.getElementById('band-high').textContent = fmtK(high);
 
-  // Alerts
+  // ── Alerts ──────────────────────────────────────────
   const az = document.getElementById('alerts-zone');
   az.innerHTML = '';
-  if (dsKey === 'default') {
-    az.innerHTML += `<div class="alert">Adres niet herkend in database — generieke Wateringen-data gebruikt. Voeg het adres toe aan de lokale dataset voor betere resultaten.</div>`;
+  if (m2PrijsBron.includes('fallback')) {
+    az.innerHTML += `<div class="alert">Geen marktdata gevonden — landelijk gemiddelde gebruikt. Resultaat is minder nauwkeurig.</div>`;
   }
-  if (!document.getElementById('m2').value) {
-    az.innerHTML += `<div class="alert alert-info">Geen m² opgegeven — geschat op ${m2} m². Vul het werkelijke oppervlak in voor nauwkeuriger resultaat.</div>`;
+  if (m2PrijsBron.includes('CBS')) {
+    az.innerHTML += `<div class="alert alert-info">m2-prijs geschat op basis van CBS WOZ-gemiddelde (peildatum 2022). Werkelijke marktwaarde kan afwijken.</div>`;
+  }
+  if (state.walter_city) {
+    az.innerHTML += `<div class="alert alert-success">Marktdata van Walter Living beschikbaar: gem. m2-prijs ${fmt(m2Prijs)}/m2 (bron: ${m2PrijsBron})</div>`;
   }
 
-  // Refs
+  // ── Referentiepanden (Walter buurt) ─────────────────
   const rg = document.getElementById('refs-grid');
-  rg.innerHTML = refs.map(r => {
-    const m2p = Math.round(r.price / r.m2);
-    return `
-      <div class="ref-card sim-${r.sim}">
-        <div class="ref-addr">${r.addr}</div>
-        <div class="ref-meta">${r.meta}</div>
-        <div class="ref-price-row">
-          <div class="ref-price">${fmt(r.price)}</div>
-          <div class="ref-m2">${fmt(m2p)}/m²</div>
-        </div>
-        <span class="ref-status ${statusClass(r.status)}">${statusLabel(r.status)}</span>
-        ${simDots(r.sim)}
-        <div style="font-size:0.7rem;color:var(--muted);margin-top:0.3rem">${r.note}</div>
-      </div>`;
-  }).join('');
+  if (state.walter_buurt && state.walter_buurt.listings && state.walter_buurt.listings.length > 0) {
+    rg.innerHTML = state.walter_buurt.listings.slice(0, 8).map(r => {
+      const m2p = r.m2 ? Math.round(r.vraagprijs / r.m2) : null;
+      return `
+        <div class="ref-card ${statusClass(r.status)}">
+          <div class="ref-addr">${r.adres}</div>
+          <div class="ref-meta">${r.m2 ? r.m2 + ' m2' : ''}${r.postcode ? ' · ' + r.postcode : ''}</div>
+          <div class="ref-price-row">
+            <div class="ref-price">Vraagprijs: ${fmt(r.vraagprijs)}</div>
+            ${m2p ? `<div class="ref-m2">${fmt(m2p)}/m2</div>` : ''}
+          </div>
+          <span class="ref-status ${statusClass(r.status)}">${statusLabel(r.status)}</span>
+        </div>`;
+    }).join('');
+  } else {
+    rg.innerHTML = '<div class="alert alert-info" style="grid-column:1/-1">Geen verkochte woningen gevonden in Walter Living voor deze buurt.</div>';
+  }
 
-  // Correcties
+  // ── Correcties ──────────────────────────────────────
   const corrRows = getCorrections(activeFeatures, type, label, m2, perceel);
   document.getElementById('corr-body').innerHTML = corrRows.map(r =>
     `<div class="corr-row">
@@ -938,28 +1118,64 @@ function runAnalyse() {
     </div>`
   ).join('');
 
-  // Marktcontext
+  // ── Marktcontext ────────────────────────────────────
   const mg = document.getElementById('markt-grid');
-  const extra = [
-    { getal: fmt(Math.round(wm2)), lbl: 'Gewogen m²-prijs refs' },
-    { getal: fmtK(premium > 0 ? premium : 0), lbl: 'Totale premium features' },
-    { getal: refs.length + ' panden', lbl: 'Referentiepanden gebruikt' },
-  ];
-  mg.innerHTML = [...markt, ...extra].map(m =>
+  const cards = [];
+
+  // Walter data
+  if (state.walter_city) {
+    const w = state.walter_city;
+    cards.push({ getal: fmt(w.gem_m2_prijs_huidig), lbl: 'Gem. m2-prijs (Walter)' });
+    cards.push({ getal: fmt(w.gem_transactieprijs_huidig), lbl: 'Gem. transactieprijs' });
+    cards.push({ getal: fmt(w.gem_vraagprijs_huidig), lbl: 'Gem. vraagprijs' });
+    cards.push({ getal: String(w.verkocht_huidig_kwartaal), lbl: 'Verkocht dit kwartaal' });
+  }
+
+  // CBS data
+  if (state.cbs) {
+    const c = state.cbs;
+    if (c.GemiddeldeWOZWaardeVanWoningen_36) {
+      cards.push({ getal: fmt(c.GemiddeldeWOZWaardeVanWoningen_36 * 1000), lbl: 'Gem. WOZ buurt (CBS)' });
+    }
+    if (c.Koopwoningen_41) {
+      cards.push({ getal: c.Koopwoningen_41 + '%', lbl: 'Koopwoningen buurt' });
+    }
+    if (c.Woningvoorraad_35) {
+      cards.push({ getal: String(c.Woningvoorraad_35), lbl: 'Woningvoorraad buurt' });
+    }
+    if (c.GemiddeldInkomenPerInkomensontvanger_80) {
+      cards.push({ getal: fmt(c.GemiddeldInkomenPerInkomensontvanger_80 * 1000), lbl: 'Gem. inkomen buurt' });
+    }
+    if (c.BouwjaarVanaf2000_47) {
+      cards.push({ getal: c.BouwjaarVanaf2000_47 + '%', lbl: 'Gebouwd na 2000' });
+    }
+  }
+
+  // Berekend
+  cards.push({ getal: fmt(Math.round(m2Prijs)), lbl: 'Gebruikte m2-prijs' });
+  cards.push({ getal: fmtK(premium > 0 ? premium : 0), lbl: 'Totale premium' });
+  if (state.pdok && state.pdok.buurtnaam) {
+    cards.push({ getal: state.pdok.buurtnaam, lbl: 'Buurt' });
+  }
+
+  mg.innerHTML = cards.map(m =>
     `<div class="markt-card">
       <div class="markt-getal">${m.getal}</div>
       <div class="markt-lbl">${m.lbl}</div>
     </div>`
   ).join('');
 
-  // Show
+  // ── Cost table ──────────────────────────────────────
+  renderCostTable();
+
+  // ── Show results ────────────────────────────────────
   const res = document.getElementById('results');
   res.style.display = 'block';
   res.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.1.2</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.2.0</footer>
 
 </body>
 </html>
