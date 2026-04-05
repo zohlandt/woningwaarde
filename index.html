@@ -945,8 +945,11 @@ async function trackedFetch(url, label, cost = 0) {
 }
 
 let costUnlocked = false;
-function checkCostPin() {
-  if (document.getElementById('cost-pin').value === '1973') {
+async function checkCostPin() {
+  const val = document.getElementById('cost-pin').value;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(val));
+  const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  if (hash === '9baed8fceea6e36d36670d72429d909547165efc038c293a14a41ef2edf83141') {
     costUnlocked = true;
     document.getElementById('cost-pin-gate').style.display = 'none';
     document.getElementById('cost-content').style.display = 'block';
@@ -1580,7 +1583,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.6.2</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.6.3</footer>
 
 </body>
 </html>
