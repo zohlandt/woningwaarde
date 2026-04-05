@@ -26,6 +26,28 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+body.locked { overflow: hidden; }
+
+#pw-gate {
+  position: fixed; inset: 0; z-index: 99999;
+  background: var(--paper);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 1rem;
+  font-family: 'Syne', sans-serif;
+}
+#pw-gate.hidden { display: none; }
+#pw-gate input {
+  padding: 0.75rem 1rem; font-size: 1rem; border: 2px solid var(--border);
+  border-radius: 8px; width: 260px; text-align: center;
+  font-family: 'Syne', sans-serif;
+}
+#pw-gate button {
+  padding: 0.6rem 2rem; font-size: 1rem; border: none; border-radius: 8px;
+  background: var(--accent); color: #fff; cursor: pointer;
+  font-family: 'Syne', sans-serif; font-weight: 600;
+}
+#pw-gate .error { color: var(--accent); font-size: 0.85rem; }
+
 body {
   font-family: 'Syne', sans-serif;
   background: var(--paper);
@@ -510,7 +532,35 @@ input:focus, select:focus, textarea:focus {
 }
 </style>
 </head>
-<body>
+<body class="locked">
+
+<div id="pw-gate">
+  <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--ink)">WoningCheck</h2>
+  <input type="password" id="pw-input" placeholder="Wachtwoord" autofocus>
+  <button onclick="checkPw()">Toegang</button>
+  <div class="error" id="pw-error"></div>
+</div>
+<script>
+(function(){
+  const HASH = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8';
+  const DAYS = 7;
+  const c = document.cookie.match(/pw_ok=1/);
+  if(c){document.getElementById('pw-gate').classList.add('hidden');document.body.classList.remove('locked');}
+})();
+async function checkPw(){
+  const val = document.getElementById('pw-input').value;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(val));
+  const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  if(hash === '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'){
+    document.cookie='pw_ok=1;max-age='+(7*86400)+';path=/;SameSite=Strict';
+    document.getElementById('pw-gate').classList.add('hidden');
+    document.body.classList.remove('locked');
+  } else {
+    document.getElementById('pw-error').textContent='Onjuist wachtwoord';
+  }
+}
+document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='Enter')checkPw()});
+</script>
 
 <header>
   <div class="logo">Woning<em>Check</em></div>
