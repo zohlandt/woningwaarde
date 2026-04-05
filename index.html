@@ -589,6 +589,41 @@ input:focus, select:focus, textarea:focus {
 .ai-switch input:checked + .ai-slider { background: var(--accent2); }
 .ai-switch input:checked + .ai-slider::before { transform: translateX(20px); }
 
+/* ── Feature switch grid ── */
+.switch-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem 1.5rem;
+  margin-bottom: 1rem;
+}
+.switch-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.3rem 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.switch-row.neg span:first-child { color: var(--accent); }
+.mini-switch {
+  position: relative; width: 36px; height: 20px; flex-shrink: 0;
+}
+.mini-switch input { opacity: 0; width: 0; height: 0; }
+.mini-slider {
+  position: absolute; inset: 0; background: var(--border);
+  border-radius: 10px; transition: 0.2s;
+}
+.mini-slider::before {
+  content: ''; position: absolute; left: 2px; top: 2px;
+  width: 16px; height: 16px; background: white;
+  border-radius: 50%; transition: 0.2s;
+}
+.mini-switch input:checked + .mini-slider { background: var(--accent2); }
+.switch-row.neg .mini-switch input:checked + .mini-slider { background: var(--accent); }
+.mini-switch input:checked + .mini-slider::before { transform: translateX(16px); }
+
 /* ── AI result box ── */
 .ai-result-box {
   background: var(--card);
@@ -904,25 +939,23 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
     </div>
 
     <div class="section-label" style="margin-top:0.25rem">Stap 4 — Bijzonderheden <span style="font-size:0.6rem;color:var(--accent);font-weight:400;text-transform:none;letter-spacing:0">(minimaal 3 selecteren)</span></div>
-    <div class="toggle-row" id="toggles">
-      <button class="toggle-btn" data-key="zwembad">Zwembad</button>
-      <button class="toggle-btn" data-key="gasloos">Gasloos</button>
-      <button class="toggle-btn" data-key="zonnepanelen">Zonnepanelen</button>
-      <button class="toggle-btn" data-key="waterligging">Waterligging</button>
-      <button class="toggle-btn" data-key="airco">Airco</button>
-      <button class="toggle-btn" data-key="dakkapel">Dakkapel</button>
-      <button class="toggle-btn" data-key="aanbouw">Aanbouw/uitbouw</button>
-      <button class="toggle-btn" data-key="monumentstatus">Monument</button>
-      <button class="toggle-btn" data-key="erfpacht">Erfpacht</button>
-      <button class="toggle-btn" data-key="asbest">Asbest</button>
-      <button class="toggle-btn" data-key="fundering">Funderingsproblemen</button>
-      <button class="toggle-btn" data-key="geen">Geen van bovenstaande</button>
-    </div>
-    <div class="toggle-row" style="margin-bottom:1rem" id="extras">
-      <button class="toggle-btn" data-extra="vloerverwarming">Vloerverwarming</button>
-      <button class="toggle-btn" data-extra="balkon">Balkon</button>
-      <button class="toggle-btn" data-extra="kelder">Kelder</button>
-      <button class="toggle-btn" data-extra="zolder">Bewoonbare zolder</button>
+    <div class="switch-grid" id="toggles">
+      <label class="switch-row" data-key="zwembad"><span>Zwembad</span><span class="mini-switch"><input type="checkbox"><span class="mini-slider"></span></span></label>
+      <label class="switch-row" data-key="gasloos"><span>Gasloos</span><span class="mini-switch"><input type="checkbox"><span class="mini-slider"></span></span></label>
+      <label class="switch-row" data-key="zonnepanelen"><span>Zonnepanelen</span><span class="mini-switch"><input type="checkbox"><span class="mini-slider"></span></span></label>
+      <label class="switch-row" data-key="waterligging"><span>Waterligging</span><span class="mini-switch"><input type="checkbox"><span class="mini-slider"></span></span></label>
+      <label class="switch-row" data-key="airco"><span>Airco</span><span class="mini-switch"><input type="checkbox"><span class="mini-slider"></span></span></label>
+      <label class="switch-row" data-key="dakkapel"><span>Dakkapel</span><span class="mini-switch"><input type="checkbox"><span class="mini-slider"></span></span></label>
+      <label class="switch-row" data-key="aanbouw"><span>Aanbouw/uitbouw</span><span class="mini-switch"><input type="checkbox"><span class="mini-slider"></span></span></label>
+      <label class="switch-row" data-key="vloerverwarming"><span>Vloerverwarming</span><span class="mini-switch"><input type="checkbox"><span class="mini-slider"></span></span></label>
+      <label class="switch-row" data-key="balkon"><span>Balkon</span><span class="mini-switch"><input type="checkbox"><span class="mini-slider"></span></span></label>
+      <label class="switch-row" data-key="kelder"><span>Kelder</span><span class="mini-switch"><input type="checkbox"><span class="mini-slider"></span></span></label>
+      <label class="switch-row" data-key="zolder"><span>Bewoonbare zolder</span><span class="mini-switch"><input type="checkbox"><span class="mini-slider"></span></span></label>
+      <label class="switch-row neg" data-key="monumentstatus"><span>Monument</span><span class="mini-switch"><input type="checkbox"><span class="mini-slider"></span></span></label>
+      <label class="switch-row neg" data-key="erfpacht"><span>Erfpacht</span><span class="mini-switch"><input type="checkbox"><span class="mini-slider"></span></span></label>
+      <label class="switch-row neg" data-key="asbest"><span>Asbest</span><span class="mini-switch"><input type="checkbox"><span class="mini-slider"></span></span></label>
+      <label class="switch-row neg" data-key="fundering"><span>Funderingsproblemen</span><span class="mini-switch"><input type="checkbox"><span class="mini-slider"></span></span></label>
+      <label class="switch-row" data-key="geen"><span>Geen van bovenstaande</span><span class="mini-switch"><input type="checkbox"><span class="mini-slider"></span></span></label>
     </div>
     <div id="validation-msg" style="display:none;color:var(--accent);font-size:0.8rem;margin-top:0.5rem;font-weight:600"></div>
 
@@ -1046,18 +1079,14 @@ const activeFeatures = new Set();
 const activeExtras = new Set();
 
 // ── Toggle buttons ────────────────────────────────────
-document.querySelectorAll('.toggle-btn[data-key]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const k = btn.dataset.key;
-    if (activeFeatures.has(k)) { activeFeatures.delete(k); btn.classList.remove('active'); }
-    else { activeFeatures.add(k); btn.classList.add('active'); }
+document.querySelectorAll('.switch-row[data-key]').forEach(row => {
+  const cb = row.querySelector('input[type="checkbox"]');
+  row.addEventListener('click', (e) => {
+    if (e.target === cb) return; // let checkbox handle itself
   });
-});
-document.querySelectorAll('.toggle-btn[data-extra]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const k = btn.dataset.extra;
-    if (activeExtras.has(k)) { activeExtras.delete(k); btn.classList.remove('active'); }
-    else { activeExtras.add(k); btn.classList.add('active'); }
+  cb.addEventListener('change', () => {
+    const k = row.dataset.key;
+    if (cb.checked) { activeFeatures.add(k); } else { activeFeatures.delete(k); }
   });
 });
 
@@ -1183,8 +1212,7 @@ async function selectAddress(id, label) {
   document.getElementById('tuin-orientatie').selectedIndex = 0;
   document.getElementById('aantal-badkamers').value = '';
   activeFeatures.clear();
-  activeExtras.clear();
-  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.switch-row input[type="checkbox"]').forEach(cb => cb.checked = false);
 
   // Fill address fields
   document.getElementById('straat').value = `${p.straatnaam} ${p.huisnummer}${p.huis_nlt && p.huis_nlt !== String(p.huisnummer) ? '' : ''}`;
@@ -1392,10 +1420,10 @@ function getOnderhoudCorrections(onderhoud, cvStaat) {
   };
   if (labels[onderhoud]) rows.push({ key: labels[onderhoud][0], val: labels[onderhoud][1], cls: labels[onderhoud][2] });
   if (cv[cvStaat]) rows.push({ key: cv[cvStaat][0], val: cv[cvStaat][1], cls: cv[cvStaat][2] });
-  if (activeExtras.has('vloerverwarming')) rows.push({ key: 'Vloerverwarming', val: '+€ 8.000', cls: 'corr-pos' });
-  if (activeExtras.has('balkon')) rows.push({ key: 'Balkon', val: '+€ 6.000', cls: 'corr-pos' });
-  if (activeExtras.has('kelder')) rows.push({ key: 'Kelder', val: '+€ 10.000', cls: 'corr-pos' });
-  if (activeExtras.has('zolder')) rows.push({ key: 'Bewoonbare zolder', val: '+€ 8.000', cls: 'corr-pos' });
+  if (activeFeatures.has('vloerverwarming')) rows.push({ key: 'Vloerverwarming', val: '+€ 8.000', cls: 'corr-pos' });
+  if (activeFeatures.has('balkon')) rows.push({ key: 'Balkon', val: '+€ 6.000', cls: 'corr-pos' });
+  if (activeFeatures.has('kelder')) rows.push({ key: 'Kelder', val: '+€ 10.000', cls: 'corr-pos' });
+  if (activeFeatures.has('zolder')) rows.push({ key: 'Bewoonbare zolder', val: '+€ 8.000', cls: 'corr-pos' });
 
   const keukenLabels = { nieuw: ['+€ 10.000', 'corr-pos'], goed: ['€ 0', 'corr-neu'], gedateerd: ['-€ 8.000', 'corr-neg'], origineel: ['-€ 15.000', 'corr-neg'] };
   const ks = document.getElementById('keuken-staat').value;
@@ -1524,10 +1552,10 @@ function runAnalyse() {
     'elektrisch': -12000, 'geen': -20000,
   };
   // Extra correcties
-  const vloerverwPremium = activeExtras.has('vloerverwarming') ? 8000 : 0;
-  const balkonPremium = activeExtras.has('balkon') ? 6000 : 0;
-  const kelderPremium = activeExtras.has('kelder') ? 10000 : 0;
-  const zolderPremium = activeExtras.has('zolder') ? 8000 : 0;
+  const vloerverwPremium = activeFeatures.has('vloerverwarming') ? 8000 : 0;
+  const balkonPremium = activeFeatures.has('balkon') ? 6000 : 0;
+  const kelderPremium = activeFeatures.has('kelder') ? 10000 : 0;
+  const zolderPremium = activeFeatures.has('zolder') ? 8000 : 0;
 
   const keukenCorr = { nieuw: 10000, goed: 0, gedateerd: -8000, origineel: -15000 };
   const badkamerCorr = { nieuw: 8000, goed: 0, gedateerd: -6000, origineel: -12000 };
@@ -1841,7 +1869,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.9.2</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.9.3</footer>
 
 </body>
 </html>
