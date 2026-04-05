@@ -560,6 +560,93 @@ input:focus, select:focus, textarea:focus {
 .cost-ok { color: var(--success); }
 .cost-err { color: var(--accent); }
 
+/* ── AI toggle ── */
+.ai-toggle-wrap {
+  display: flex; align-items: center; gap: 0.75rem;
+  margin-bottom: 1rem; margin-top: 0.5rem;
+}
+.ai-toggle-label {
+  font-size: 0.8rem; font-weight: 600; color: var(--muted);
+}
+.ai-switch {
+  position: relative; width: 44px; height: 24px; cursor: pointer;
+}
+.ai-switch input { opacity: 0; width: 0; height: 0; }
+.ai-slider {
+  position: absolute; inset: 0; background: var(--border);
+  border-radius: 12px; transition: 0.2s;
+}
+.ai-slider::before {
+  content: ''; position: absolute; left: 3px; top: 3px;
+  width: 18px; height: 18px; background: white;
+  border-radius: 50%; transition: 0.2s;
+}
+.ai-switch input:checked + .ai-slider { background: var(--accent2); }
+.ai-switch input:checked + .ai-slider::before { transform: translateX(20px); }
+
+/* ── AI result box ── */
+.ai-result-box {
+  background: var(--card);
+  border: 2px solid var(--accent2);
+  border-radius: 2px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+.ai-result-box::before {
+  content: 'AI'; position: absolute; top: -0.6rem; left: 1rem;
+  background: var(--accent2); color: white; font-size: 0.6rem;
+  font-weight: 700; padding: 2px 8px; border-radius: 2px;
+  letter-spacing: 0.1em;
+}
+.ai-estimate {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem; color: var(--accent2); margin-bottom: 0.25rem;
+}
+.ai-range {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem; color: var(--muted); margin-bottom: 0.75rem;
+}
+.ai-reasoning {
+  font-size: 0.85rem; color: var(--ink); line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+.ai-corrections {
+  font-size: 0.8rem; color: var(--muted);
+}
+.ai-corrections div {
+  display: flex; justify-content: space-between;
+  padding: 0.3rem 0; border-bottom: 1px solid var(--cream);
+}
+.ai-cost-line {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem; color: var(--muted);
+  margin-top: 0.75rem; text-align: right;
+}
+.ai-loading {
+  text-align: center; padding: 2rem; color: var(--muted);
+  font-size: 0.85rem;
+}
+.compare-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.compare-card {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 2px; padding: 1.25rem; text-align: center;
+}
+.compare-card.ai { border-color: var(--accent2); }
+.compare-method {
+  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem;
+}
+.compare-value {
+  font-family: 'DM Serif Display', serif; font-size: 1.8rem;
+  line-height: 1.1;
+}
+.compare-card .compare-value { color: var(--accent); }
+.compare-card.ai .compare-value { color: var(--accent2); }
+
 /* ── Animaties ── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
@@ -711,6 +798,14 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
       <button class="toggle-btn" data-key="dakkapel">Dakkapel</button>
     </div>
 
+    <div class="ai-toggle-wrap">
+      <label class="ai-switch">
+        <input type="checkbox" id="ai-toggle">
+        <span class="ai-slider"></span>
+      </label>
+      <span class="ai-toggle-label">AI-analyse inschakelen (Claude — kosten per zoekopdracht)</span>
+    </div>
+
     <button class="analyse-btn" id="analyseBtn" onclick="startAnalyse()">
       Start CMA-analyse
     </button>
@@ -745,6 +840,12 @@ document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='E
       <span id="band-high">—</span>
     </div>
   </div>
+
+  <!-- Vergelijking wiskundig vs AI -->
+  <div id="compare-zone" style="display:none"></div>
+
+  <!-- AI analyse resultaat -->
+  <div id="ai-zone" style="display:none"></div>
 
   <!-- Data alerts -->
   <div id="alerts-zone"></div>
@@ -1011,20 +1112,29 @@ function premiumFactor(features, label) {
 }
 
 // ── Analyse ───────────────────────────────────────────
-function startAnalyse() {
+async function startAnalyse() {
   const btn = document.getElementById('analyseBtn');
   btn.classList.add('loading');
   btn.textContent = 'Analyseren...';
 
-  // Small delay for UX
-  setTimeout(() => {
-    runAnalyse();
-    btn.classList.remove('loading');
-    btn.textContent = 'Opnieuw analyseren';
-  }, 300);
+  const estimate = runAnalyse();
+
+  // AI analyse if toggled on
+  const aiOn = document.getElementById('ai-toggle').checked;
+  if (aiOn && estimate) {
+    btn.textContent = 'AI analyseert...';
+    await runAiAnalyse(estimate);
+  }
+
+  btn.classList.remove('loading');
+  btn.textContent = 'Opnieuw analyseren';
 }
 
 function runAnalyse() {
+  // Reset AI zones
+  document.getElementById('compare-zone').style.display = 'none';
+  document.getElementById('ai-zone').style.display = 'none';
+
   const straat   = document.getElementById('straat').value.trim();
   const postcode = document.getElementById('postcode').value.trim();
   const plaats   = document.getElementById('plaats').value.trim();
@@ -1172,10 +1282,106 @@ function runAnalyse() {
   const res = document.getElementById('results');
   res.style.display = 'block';
   res.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  return { estimate, low, high, m2, perceel, bouwjaar, label, type, m2Prijs, m2PrijsBron, premium, straat, postcode, plaats };
+}
+
+// ── AI Analyse (Claude) ──────────────────────────────
+async function runAiAnalyse(wisk) {
+  const aiZone = document.getElementById('ai-zone');
+  const compareZone = document.getElementById('compare-zone');
+  aiZone.style.display = 'block';
+  aiZone.innerHTML = '<div class="ai-loading"><div class="skeleton" style="width:60%;margin:0 auto"></div><br>Claude analyseert de woningdata...</div>';
+
+  const payload = {
+    adres: `${wisk.straat}, ${wisk.plaats}`,
+    m2: wisk.m2,
+    perceel: wisk.perceel || 'onbekend',
+    bouwjaar: wisk.bouwjaar,
+    type: wisk.type,
+    energielabel: wisk.label || 'onbekend',
+    features: Array.from(activeFeatures),
+    wiskundig_schatting: wisk.estimate,
+    gem_transactieprijs: state.walter_city?.gem_transactieprijs_huidig || 'onbekend',
+    gem_m2_prijs: state.walter_city?.gem_m2_prijs_huidig || 'onbekend',
+    gem_vraagprijs: state.walter_city?.gem_vraagprijs_huidig || 'onbekend',
+    verkocht_kwartaal: state.walter_city?.verkocht_huidig_kwartaal || 'onbekend',
+    woz_buurt: state.cbs ? (state.cbs.GemiddeldeWOZWaardeVanWoningen_36 * 1000) : 'onbekend',
+    buurtnaam: state.pdok?.buurtnaam || 'onbekend',
+    koopwoningen_pct: state.cbs?.Koopwoningen_41 || 'onbekend',
+    eengezins_pct: state.cbs?.PercentageEengezinswoning_37 || 'onbekend',
+    gem_inkomen: state.cbs ? (state.cbs.GemiddeldInkomenPerInkomensontvanger_80 * 1000) : 'onbekend',
+    bouwjaar_na2000_pct: state.cbs?.BouwjaarVanaf2000_47 || 'onbekend',
+    walter_buurt_listings: state.walter_buurt?.listings || [],
+  };
+
+  const start = performance.now();
+  const entry = { label: 'Claude AI (proxy)', url: 'proxy.php?source=claude', status: 'pending', duration: 0, cost: 0 };
+  apiLog.push(entry);
+
+  try {
+    const resp = await fetch('proxy.php?source=claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    entry.duration = Math.round(performance.now() - start);
+    const data = await resp.json();
+
+    if (data.error) {
+      entry.status = 'error';
+      aiZone.innerHTML = `<div class="alert">${data.error}</div>`;
+      renderCostTable();
+      return;
+    }
+
+    entry.status = 'ok';
+    entry.cost = data.cost_eur || 0;
+
+    // Render AI result
+    const corrections = (data.correcties || []).map(c =>
+      `<div><span>${c.factor}</span><span style="font-family:'DM Mono',monospace;font-weight:500">${c.effect}</span></div>`
+    ).join('');
+
+    aiZone.innerHTML = `
+      <div class="ai-result-box fade-up">
+        <div class="ai-estimate">${fmt(data.schatting)}</div>
+        <div class="ai-range">${fmtK(data.range_laag)} – ${fmtK(data.range_hoog)}</div>
+        <div class="ai-reasoning">${data.onderbouwing}</div>
+        ${corrections ? `<div class="ai-corrections">${corrections}</div>` : ''}
+        <div class="ai-cost-line">
+          ${data.tokens_input} input + ${data.tokens_output} output tokens · ${fmt2(data.cost_eur)}
+        </div>
+      </div>
+    `;
+
+    // Comparison cards
+    compareZone.style.display = 'grid';
+    compareZone.className = 'compare-grid fade-up';
+    compareZone.innerHTML = `
+      <div class="compare-card">
+        <div class="compare-method">Wiskundig</div>
+        <div class="compare-value">${fmt(wisk.estimate)}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted);margin-top:0.3rem">${fmtK(wisk.low)} – ${fmtK(wisk.high)}</div>
+      </div>
+      <div class="compare-card ai">
+        <div class="compare-method">Claude AI</div>
+        <div class="compare-value">${fmt(data.schatting)}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted);margin-top:0.3rem">${fmtK(data.range_laag)} – ${fmtK(data.range_hoog)}</div>
+      </div>
+    `;
+
+  } catch (e) {
+    entry.duration = Math.round(performance.now() - start);
+    entry.status = 'error';
+    aiZone.innerHTML = '<div class="alert">AI-analyse mislukt. Controleer de API-key configuratie.</div>';
+  }
+
+  renderCostTable();
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.2.0</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.3.0</footer>
 
 </body>
 </html>

@@ -6,7 +6,20 @@
  *   ?source=bag&postcode=2292CR&huisnummer=2          — BAG WFS property data
  *   ?source=walter_city&city=wateringen                — Walter Living city stats
  *   ?source=walter_buurt&gemeente=westland&plaats=wateringen&buurt=essellanden&code=BU17830611 — Walter buurt sold listings
+ *   POST ?source=claude  (JSON body with property data)  — Claude AI valuation
  */
+
+// Load .env if exists
+$envFile = __DIR__ . '/.env';
+if (file_exists($envFile)) {
+    foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        if (strpos($line, '#') === 0) continue;
+        if (strpos($line, '=') !== false) {
+            list($key, $val) = explode('=', $line, 2);
+            $_ENV[trim($key)] = trim($val);
+        }
+    }
+}
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -30,6 +43,11 @@ switch ($source) {
             $_GET['buurt'] ?? '',
             $_GET['code'] ?? ''
         );
+        break;
+
+    case 'claude':
+        $input = json_decode(file_get_contents('php://input'), true);
+        echo fetchClaudeValuation($input ?? []);
         break;
 
     default:
@@ -173,6 +191,131 @@ function fetchWalterBuurt($gemeente, $plaats, $buurt, $code) {
         'listings' => $listings,
         'count' => count($listings),
     ]);
+}
+
+// ── Claude AI valuation ─────────────────────────────────────────────────────
+
+function fetchClaudeValuation($data) {
+    $apiKey = $_ENV['ANTHROPIC_API_KEY'] ?? '';
+    if (!$apiKey) {
+        return json_encode(['error' => 'ANTHROPIC_API_KEY niet geconfigureerd in .env']);
+    }
+
+    $prompt = buildValuationPrompt($data);
+
+    $payload = json_encode([
+        'model' => 'claude-sonnet-4-20250514',
+        'max_tokens' => 1024,
+        'messages' => [
+            ['role' => 'user', 'content' => $prompt]
+        ]
+    ]);
+
+    $ch = curl_init('https://api.anthropic.com/v1/messages');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $payload,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'x-api-key: ' . $apiKey,
+            'anthropic-version: 2023-06-01',
+        ],
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200) {
+        return json_encode(['error' => 'Claude API error', 'status' => $httpCode, 'response' => $response]);
+    }
+
+    $result = json_decode($response, true);
+    $text = $result['content'][0]['text'] ?? '';
+    $inputTokens = $result['usage']['input_tokens'] ?? 0;
+    $outputTokens = $result['usage']['output_tokens'] ?? 0;
+
+    // Sonnet pricing: $3/MTok input, $15/MTok output
+    $costUsd = ($inputTokens * 3 / 1000000) + ($outputTokens * 15 / 1000000);
+    $costEur = $costUsd * 0.92; // approx USD to EUR
+
+    // Parse the JSON from Claude's response
+    $jsonMatch = [];
+    preg_match('/\{[\s\S]*\}/', $text, $jsonMatch);
+    $parsed = json_decode($jsonMatch[0] ?? '{}', true);
+
+    return json_encode([
+        'schatting' => $parsed['schatting'] ?? null,
+        'range_laag' => $parsed['range_laag'] ?? null,
+        'range_hoog' => $parsed['range_hoog'] ?? null,
+        'onderbouwing' => $parsed['onderbouwing'] ?? $text,
+        'correcties' => $parsed['correcties'] ?? [],
+        'tokens_input' => $inputTokens,
+        'tokens_output' => $outputTokens,
+        'cost_eur' => round($costEur, 4),
+    ]);
+}
+
+function buildValuationPrompt($d) {
+    $features = implode(', ', $d['features'] ?? []);
+    $refs = '';
+    if (!empty($d['walter_buurt_listings'])) {
+        foreach (array_slice($d['walter_buurt_listings'], 0, 10) as $r) {
+            $refs .= "- {$r['adres']}: vraagprijs €" . number_format($r['vraagprijs'], 0, ',', '.')
+                   . ", {$r['m2']}m², verkocht {$r['status']} de vraagprijs\n";
+        }
+    }
+
+    return <<<PROMPT
+Je bent een Nederlandse vastgoedtaxateur-AI. Geef een onderbouwde indicatieve marktwaardeschatting voor onderstaande woning.
+
+WONING:
+- Adres: {$d['adres']}
+- Woonoppervlak: {$d['m2']} m²
+- Perceeloppervlak: {$d['perceel']} m²
+- Bouwjaar: {$d['bouwjaar']}
+- Woningtype: {$d['type']}
+- Energielabel: {$d['energielabel']}
+- Bijzonderheden: {$features}
+
+MARKTDATA (Walter Living, huidig kwartaal):
+- Gem. transactieprijs stad: €{$d['gem_transactieprijs']}
+- Gem. m²-prijs stad: €{$d['gem_m2_prijs']}
+- Gem. vraagprijs stad: €{$d['gem_vraagprijs']}
+- Aantal verkocht dit kwartaal: {$d['verkocht_kwartaal']}
+
+CBS BUURTDATA:
+- Gem. WOZ-waarde buurt: €{$d['woz_buurt']}
+- Buurt: {$d['buurtnaam']}
+- % Koopwoningen: {$d['koopwoningen_pct']}%
+- % Eengezinswoning: {$d['eengezins_pct']}%
+- Gem. inkomen: €{$d['gem_inkomen']}
+- % Gebouwd na 2000: {$d['bouwjaar_na2000_pct']}%
+
+VERKOCHTE REFERENTIEWONINGEN IN DE BUURT:
+{$refs}
+
+WISKUNDIGE SCHATTING (ter referentie): €{$d['wiskundig_schatting']}
+
+INSTRUCTIES:
+1. Analyseer de woning in context van de buurt en marktdata
+2. Houd rekening met afnemend meerrendement bij grote woningen (>150m²)
+3. Weeg de referentiewoningen mee (vraagprijs + boven/rond/onder)
+4. Geef je schatting als JSON (geen markdown, alleen JSON):
+
+{
+  "schatting": 1100000,
+  "range_laag": 1020000,
+  "range_hoog": 1180000,
+  "onderbouwing": "Korte onderbouwing in 2-3 zinnen, in het Nederlands",
+  "correcties": [
+    {"factor": "Afnemend meerrendement groot m²", "effect": "-€40.000"},
+    {"factor": "Ander voorbeeld", "effect": "+€15.000"}
+  ]
+}
+PROMPT;
 }
 
 // ── cURL helper ──────────────────────────────────────────────────────────────
