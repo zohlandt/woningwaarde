@@ -273,13 +273,22 @@ function fetchEnergielabel($bagId) {
         return json_encode(['error' => 'Geen energielabel gevonden']);
     }
 
-    // Can return multiple labels, take the most recent valid one
-    $label = $data[0] ?? $data;
-    if (is_array($data) && count($data) > 1) {
-        usort($data, function($a, $b) {
-            return strcmp($b['registratiedatum'] ?? '', $a['registratiedatum'] ?? '');
+    // Filter on Woningbouw only, then take the most recent
+    if (is_array($data) && isset($data[0])) {
+        $woningen = array_filter($data, function($item) {
+            return ($item['Gebouwklasse'] ?? '') === 'Woningbouw';
         });
-        $label = $data[0];
+        if (empty($woningen)) {
+            // No residential label found, use first anyway but flag it
+            $woningen = $data;
+        }
+        $woningen = array_values($woningen);
+        usort($woningen, function($a, $b) {
+            return strcmp($b['Registratiedatum'] ?? '', $a['Registratiedatum'] ?? '');
+        });
+        $label = $woningen[0];
+    } else {
+        $label = $data;
     }
 
     return json_encode([
