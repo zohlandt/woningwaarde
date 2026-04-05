@@ -1396,7 +1396,30 @@ async function runAiAnalyse(wisk) {
   const aiZone = document.getElementById('ai-zone');
   const compareZone = document.getElementById('compare-zone');
   aiZone.style.display = 'block';
-  aiZone.innerHTML = '<div class="ai-loading"><div class="skeleton" style="width:60%;margin:0 auto"></div><br>Diepteanalyse bezig...</div>';
+  const aiMessages = [
+    'Vierkante meters aan het opmeten...',
+    'Buren aan het ondervragen...',
+    'Kozijnen aan het inspecteren...',
+    'Dakpannen aan het tellen...',
+    'WOZ-beschikking aan het bestuderen...',
+    'Schuttingen aan het vergelijken...',
+    'Hypotheekadviseur aan het bellen...',
+    'Energielabel aan het controleren...',
+    'Tuin aan het taxeren...',
+    'Kruipruimte aan het betreden...',
+    'Fundering aan het bekloppen...',
+    'Buurtbewoners aan het googelen...',
+    'Vraagprijzen aan het analyseren...',
+    'Markttrends aan het bestuderen...',
+    'Vergelijkbare woningen aan het bezoeken...',
+  ];
+  aiZone.innerHTML = `<div class="ai-loading"><div class="skeleton" style="width:60%;margin:0 auto"></div><br><span id="ai-status-msg">${aiMessages[0]}</span></div>`;
+  let msgIdx = 0;
+  const msgInterval = setInterval(() => {
+    msgIdx = (msgIdx + 1) % aiMessages.length;
+    const el = document.getElementById('ai-status-msg');
+    if (el) el.textContent = aiMessages[msgIdx];
+  }, 2000);
 
   const payload = {
     adres: `${wisk.straat}, ${wisk.plaats}`,
@@ -1435,6 +1458,7 @@ async function runAiAnalyse(wisk) {
     entry.duration = Math.round(performance.now() - start);
     const data = await resp.json();
 
+    clearInterval(msgInterval);
     if (data.error) {
       entry.status = 'error';
       aiZone.innerHTML = `<div class="alert">${data.error}</div>`;
@@ -1479,6 +1503,7 @@ async function runAiAnalyse(wisk) {
     `;
 
   } catch (e) {
+    clearInterval(msgInterval);
     entry.duration = Math.round(performance.now() - start);
     entry.status = 'error';
     aiZone.innerHTML = '<div class="alert">AI-analyse mislukt. Controleer de API-key configuratie.</div>';
@@ -1488,7 +1513,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.5.5</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.5.6</footer>
 
 </body>
 </html>
