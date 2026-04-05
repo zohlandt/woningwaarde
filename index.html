@@ -1391,12 +1391,12 @@ function runAnalyse() {
   return { estimate, low, high, m2, perceel, bouwjaar, label, type, m2Prijs, m2PrijsBron, premium, straat, postcode, plaats };
 }
 
-// ── AI Analyse (Claude) ──────────────────────────────
+// ── Diepteanalyse (AI) ───────────────────────────────
 async function runAiAnalyse(wisk) {
   const aiZone = document.getElementById('ai-zone');
   const compareZone = document.getElementById('compare-zone');
   aiZone.style.display = 'block';
-  aiZone.innerHTML = '<div class="ai-loading"><div class="skeleton" style="width:60%;margin:0 auto"></div><br>Claude analyseert de woningdata...</div>';
+  aiZone.innerHTML = '<div class="ai-loading"><div class="skeleton" style="width:60%;margin:0 auto"></div><br>Diepteanalyse bezig...</div>';
 
   const payload = {
     adres: `${wisk.straat}, ${wisk.plaats}`,
@@ -1488,7 +1488,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.5.4</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.5.5</footer>
 
 </body>
 </html>
