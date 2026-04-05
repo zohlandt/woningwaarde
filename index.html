@@ -698,7 +698,7 @@ input:focus, select:focus, textarea:focus {
 </div>
 <script>
 (function(){
-  const HASH = '4e0755d629a8057deabcfd8b3df292087cb063b3324a553e6323c18489b223bc';
+  const HASH = '61b0a9bb54976468369ceee0551e7b5e967f5e307718793ce7efcb805121af72';
   const c = document.cookie.match(/pw_ok=1/);
   if(c){document.getElementById('pw-gate').classList.add('hidden');document.body.classList.remove('locked');}
 })();
@@ -706,7 +706,7 @@ async function checkPw(){
   const val = document.getElementById('pw-input').value;
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(val));
   const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  if(hash === '4e0755d629a8057deabcfd8b3df292087cb063b3324a553e6323c18489b223bc'){
+  if(hash === '61b0a9bb54976468369ceee0551e7b5e967f5e307718793ce7efcb805121af72'){
     document.cookie='pw_ok=1;max-age='+(7*86400)+';path=/;SameSite=Strict';
     document.getElementById('pw-gate').classList.add('hidden');
     document.body.classList.remove('locked');
@@ -1583,7 +1583,7 @@ async function runAiAnalyse(wisk) {
 }
 </script>
 
-<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.6.4</footer>
+<footer style="text-align:center;padding:1rem;color:var(--muted);font-size:0.75rem;opacity:0.5;">v0.6.5</footer>
 
 </body>
 </html>
